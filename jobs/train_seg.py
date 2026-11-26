@@ -43,15 +43,20 @@ def log(*a):
 
 
 # ------------------------------------------------------------------ data
-def render_masks(polys):
-    """polys in 650-px coords -> uint8 bitmask at BIG res: bit0 body, bit1 border, bit2 contact."""
-    body = np.zeros((BIG, BIG), np.uint8)
-    border = np.zeros((BIG, BIG), np.uint8)
-    count = np.zeros((BIG, BIG), np.uint8)
+def render_masks(polys, hw=None):
+    """polys in tile-px coords -> uint8 bitmask at SCALE x res: bit0 body, bit1 border, bit2 contact.
+    hw = (H, W) of the tile in pixels (default 650x650)."""
+    if isinstance(polys, tuple) and len(polys) == 2 and isinstance(polys[1], tuple):
+        polys, hw = polys
+    H, W = hw or (TILE, TILE)
+    MH, MW = int(round(H * SCALE)), int(round(W * SCALE))
+    body = np.zeros((MH, MW), np.uint8)
+    border = np.zeros((MH, MW), np.uint8)
+    count = np.zeros((MH, MW), np.uint8)
     k3 = np.ones((3, 3), np.uint8)
     for p in polys:
         ext = (np.asarray(p.exterior.coords)[:, :2] * SCALE).round().astype(np.int32)
-        m = np.zeros((BIG, BIG), np.uint8)
+        m = np.zeros((MH, MW), np.uint8)
         cv2.fillPoly(m, [ext], 1)
         for r in p.interiors:
             cv2.fillPoly(m, [(np.asarray(r.coords)[:, :2] * SCALE).round().astype(np.int32)], 0)
@@ -65,20 +70,23 @@ def render_masks(polys):
 
 
 class TileDS(torch.utils.data.Dataset):
-    def __init__(self, imgs, masks, crop, n_per_epoch, train=True):
+    def __init__(self, imgs, masks, crop, n_per_epoch, train=True, weights=None):
         self.imgs, self.masks, self.crop, self.n, self.train = imgs, masks, crop, n_per_epoch, train
+        self.p = None if weights is None else np.asarray(weights, np.float64) / np.sum(weights)
 
     def __len__(self):
         return self.n
 
     def __getitem__(self, i):
         rng = np.random.default_rng()
-        k = rng.integers(len(self.imgs))
+        k = rng.choice(len(self.imgs), p=self.p) if self.p is not None else rng.integers(len(self.imgs))
         img, msk = self.imgs[k], self.masks[k]
-        # scale jitter: sample source window in 650-px space
+        H, W = img.shape[:2]
+        # scale jitter: sample source window in tile-px space
         s = SCALE * rng.uniform(0.8, 1.25)
-        src = min(int(self.crop / s), TILE)
-        x0, y0 = rng.integers(0, TILE - src + 1, size=2)
+        src = min(int(self.crop / s), H, W)
+        y0 = rng.integers(0, H - src + 1)
+        x0 = rng.integers(0, W - src + 1)
         im = cv2.resize(img[y0:y0 + src, x0:x0 + src], (self.crop, self.crop), interpolation=cv2.INTER_LINEAR)
         mx0, my0, msrc = int(x0 * SCALE), int(y0 * SCALE), int(src * SCALE)
         mk = cv2.resize(msk[my0:my0 + msrc, mx0:mx0 + msrc], (self.crop, self.crop), interpolation=cv2.INTER_NEAREST)
@@ -188,6 +196,8 @@ def main():
     ap.add_argument("--max_hours", type=float, default=3.0)
     ap.add_argument("--init_from", default="", help="checkpoint path to fine-tune / eval only")
     ap.add_argument("--eval_only", action="store_true")
+    ap.add_argument("--extra", default="", help="comma list of xds datasets whose train split is added (generalist)")
+    ap.add_argument("--extra_frac", type=float, default=0.6, help="sampling share of extra datasets")
     ap.add_argument("--ensemble", default="", help="eval-only: comma list of ckpt_path=encoder")
     args = ap.parse_args()
     t_start = time.time()
@@ -236,8 +246,34 @@ def main():
         imgs = [load_img(i) for i in train_ids]
         with Pool(os.cpu_count()) as pool:
             masks = pool.map(render_masks, [gt.get(i, []) for i in train_ids], chunksize=32)
+        weights = None
+        if args.extra:
+            from shapely import wkt as _wkt
+
+            n_sn2 = len(imgs)
+            extra_ds = args.extra.split(",")
+            weights = [(1 - args.extra_frac) / n_sn2] * n_sn2
+            for ds in extra_ds:
+                d = root / "xds" / ds
+                lab = json.loads((d / "labels.json").read_text())
+                tids = json.loads((d / "splits.json").read_text()).get("train", [])
+
+                def _ld(i, d=d):
+                    return cv2.cvtColor(cv2.imread(str(d / "images" / f"{i}.png")), cv2.COLOR_BGR2RGB)
+
+                with ThreadPoolExecutor(16) as ex:
+                    ims = list(ex.map(_ld, tids))
+                jobs_ = [([_wkt.loads(w) for w in lab[i]], im.shape[:2]) for i, im in zip(tids, ims)]
+                with Pool(os.cpu_count()) as pool:
+                    mks = pool.map(render_masks, jobs_, chunksize=8)
+                # weight tiles by area so big tiles are sampled proportionally to their pixels
+                areas = np.array([im.shape[0] * im.shape[1] for im in ims], np.float64)
+                weights += list(args.extra_frac / len(extra_ds) * areas / areas.sum())
+                imgs += ims
+                masks += mks
+                log("extra", ds, len(tids), "tiles", f"{time.time() - t_start:.0f}s")
         log("loaded train set", f"{time.time() - t_start:.0f}s")
-        ds = TileDS(imgs, masks, args.crop, args.steps * args.bs)
+        ds = TileDS(imgs, masks, args.crop, args.steps * args.bs, weights=weights)
         dl = torch.utils.data.DataLoader(ds, batch_size=args.bs, num_workers=args.workers, drop_last=True,
                                          pin_memory=True, persistent_workers=True, prefetch_factor=4)
         opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)

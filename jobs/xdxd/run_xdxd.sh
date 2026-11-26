@@ -22,7 +22,7 @@ echo "XD_XD code commit: $(git -C /tmp/bd2 rev-parse HEAD)"
 cp -r /tmp/bd2/1-XD_XD/code/. /root/
 mkdir -p /root/visualizer-2.0 && unzip -q -o /root/visualizer-2.0.zip -d /root/visualizer-2.0
 printf '#!/bin/bash\n' > /usr/local/bin/activate && chmod +x /usr/local/bin/activate  # `source activate py35`
-export PYTHONPATH=/sn2/xdxd/shim
+export PYTHONPATH=/sn2/xdxd/shim PYTHONFAULTHANDLER=1  # stack trace on native crashes
 
 python /sn2/xdxd/stage_data.py --sn2 /sn2 --root /data --aois $AOI
 save() {  # results + logs (not the big HDF5 caches) to the bucket

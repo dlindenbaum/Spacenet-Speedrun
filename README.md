@@ -14,6 +14,8 @@ Revisiting the [SpaceNet 2 building-footprint challenge](https://medium.com/the-
 | **ConvNeXt-B (IN-22k) U-Net, RGB only, 1 model, 53 min on 1×A100** | SN2 train | **0.755** | **+0.062, wins all 4 cities** | ~$2.20 |
 | EffNetV2-M (IN-21k) U-Net, RGB only, 1 model, 56 min on 1×A100 | SN2 train | 0.731 | +0.038 | ~$2.35 |
 | Ensemble of both | SN2 train | 0.752 | +0.059 | +$0.45 |
+| DINOv3 ViT-L (satellite-pretrained, SAT-493M) U-Net, 128 min on 1×A100 | SN2 train | 0.716 | +0.023 | ~$5.30 |
+| **SAM 3, text prompt "building"** | **none (zero-shot)** | **0.642** | −0.051 (≈ 2017's 2nd place) | ~$1 GPU |
 | Gemma 4 31B (2×2 crops) boxes → SAM 2.1 | **none (zero-shot)** | 0.462 | −0.23 (≈ 2/3 of winner) | ~$0.05 API + GPU |
 | Gemma 4 26B-A4B boxes alone | none | 0.155 | | $0.01 |
 
@@ -80,6 +82,24 @@ Takeaways:
   for a few cents of API calls. Cropping (more pixels per building) is the biggest single lever for the VLMs.
 * Recall is the limiter (Gemma finds ~50–60 % of buildings, under-counting dense blocks).
 
+### Zero-shot SAM 3 (text prompt, full held-out `val`: 1,037 tiles)
+
+`jobs/sam3_eval.py`: SAM 3 (`facebook/sam3`, transformers `Sam3Model`) prompted with a single word on the whole RGB tile;
+instances above a score threshold become polygons. Prompt, crop grid and threshold were chosen on `eval_small`
+("building" > "house" > "roof"; 2×2 crops hurt), then the whole `val` split was scored once.
+
+| Split / threshold | Vegas | Paris | Shanghai | Khartoum | **Overall** |
+|---|---|---|---|---|---|
+| eval_small (100 tiles), 0.4 | 0.855 | 0.672 | 0.589 | 0.567 | 0.671 |
+| **val (1,037 tiles), 0.4** | 0.810 | 0.678 | 0.584 | 0.497 | **0.642** |
+| val, best threshold (0.35) | | | | | 0.644 |
+
+* SAM 3 with one English word is **0.18 better than the best SAM 2.1 / VLM pipeline** and about level with 2017's
+  2nd place (0.643), 0.05 behind the winner. It needs no SpaceNet labels at all.
+* Precision is decent (0.67–0.88); **recall is the limit** in the dense cities (Khartoum 0.40, Shanghai 0.51):
+  it merges or skips small touching buildings.
+* The `eval_small` estimate (0.671) was optimistic; it over-weights the easier tiles.
+
 ### Supervised (full held-out `val`: 1,037 tiles, 20,859 buildings)
 
 Recipe (`jobs/train_seg.py`): U-Net (segmentation_models_pytorch) with a timm ImageNet-21k/22k encoder; 3 sigmoid outputs
@@ -94,6 +114,11 @@ random 512 px crops with scale jitter, flips/rot90, photometric jitter; AdamW, c
 | **ConvNeXt-B U-Net (RGB only)** | **0.892** | **0.807** | **0.709** | 0.611 | **0.755** |
 | EffNetV2-M U-Net (RGB only) | 0.878 | 0.768 | 0.691 | 0.586 | 0.731 |
 | Ensemble (mean of both; wider pp grid) | 0.890 | 0.800 | 0.706 | **0.612** | 0.752 |
+| DINOv3 ViT-L/16 SAT-493M U-Net (features from blocks 6/12/18/24 + conv stem; backbone LR 0.1×) | 0.867 | 0.746 | 0.690 | 0.559 | 0.716 |
+
+The satellite-pretrained DINOv3 backbone is **worse** than ImageNet ConvNeXt-B here (−0.04) despite 3× the parameters and
+2.4× the training time: at 16 px patches its features are coarse for 3–15 m buildings, and the conv stem/decoder has to
+recover the boundary detail. Satellite pretraining does not replace a convolutional, high-resolution encoder for footprints.
 
 Biggest gains are in the hard cities (Shanghai +0.11, Khartoum +0.07, Paris +0.06); Vegas was already near saturation in 2017.
 Caveat: our `val` is a held-out slice of the public training AOIs, not the (unreleased) official test set, so numbers are
@@ -107,9 +132,10 @@ held out **by location**: in SN4, a test location is test at all 27 look angles,
 (0 overlap; the 300 train locations are disjoint).
 `scripts/check_leakage.py` checks the other datasets by geographic footprint:
 * **SN8 is clean**: 0 of 48 Germany and 3 of 142 Louisiana test tiles touch a training image, covering 1.4 % of test area on average.
-* **SN6 leaks**: its tiles come from overlapping imaging strips, so a split by tile number does not separate ground.
-  All 299 test tiles are 99.8 % covered by training images. **The generalist's SN6 score is therefore invalid**;
-  the SN2-only SN6 score is still valid, because that model never saw SN6.
+* **SN6 leaked under the original split**: its tiles come from overlapping imaging strips, so a split by tile number did not
+  separate ground (99.8 % of test area was covered by training images). SN6 is now split **geographically**: 1 km grid
+  cells are hashed to test, and no training tile may come within 50 m of a test tile. Result: 300 test / 1,495 train tiles,
+  0 of 300 test tiles overlapping training. The generalist was retrained on this split; all numbers below use it.
 
 * **SN2-only**: the 0.755 ConvNeXt-B above, applied zero-shot.
 * **Generalist**: the same recipe, trained on SN2 + the SN4/SN6/SN8 train splits (60 % of crops from the extra datasets, area-weighted),
@@ -119,30 +145,55 @@ held out **by location**: in SN4, a test location is test at all 27 look angles,
 
 | Dataset (test split) | SN2-only F1 | **Generalist F1** | Generalist P / R |
 |---|---|---|---|
-| SN2 val (in-domain) | 0.755 | 0.743 | (per city in json) |
-| SN4 Atlanta, nadir ≤ 25° | 0.394 | **0.722** | 0.77 / 0.68 |
-| SN4 Atlanta, off-nadir 26–39° | 0.195 | **0.489** | 0.56 / 0.44 |
-| SN4 Atlanta, very off-nadir ≥ 40° | 0.025 | **0.246** | 0.37 / 0.18 |
-| SN6 Rotterdam (optical PS-RGB) | 0.322 | ~~0.471~~ (leaked, invalid) | – |
-| SN8 Louisiana-East (pre-flood) | 0.534 | **0.813** | 0.82 / 0.80 |
-| SN8 Germany (pre-flood) | 0.107 | **0.600** | 0.57 / 0.63 |
+| SN2 val (in-domain) | 0.755 | 0.738 | (per city in json) |
+| SN4 Atlanta, nadir ≤ 25° | 0.394 | **0.735** | 0.77 / 0.70 |
+| SN4 Atlanta, off-nadir 26–39° | 0.195 | **0.504** | 0.57 / 0.45 |
+| SN4 Atlanta, very off-nadir ≥ 40° | 0.025 | **0.271** | 0.40 / 0.21 |
+| SN6 Rotterdam (optical PS-RGB, geographic split) | 0.335 | **0.436** | 0.73 / 0.31 |
+| SN8 Louisiana-East (pre-flood) | 0.534 | **0.809** | 0.81 / 0.81 |
+| SN8 Germany (pre-flood) | 0.107 | **0.581** | 0.56 / 0.60 |
 | SN7 Planet 4 m (unseen) | 0.0005 | 0.000 | – |
+
+The generalist trains 40 % of crops on SN2 and 20 % each on SN4 (3,000 tiles but only 300 distinct locations), SN6
+(1,495 tiles) and SN8 (1,217 tiles). An earlier generalist on the leaky SN6 split scored 0.743 on SN2 and within 0.02 of
+these numbers elsewhere (`results/transfer/generalist_nosn1_convnextb.json`).
 
 Takeaways:
 * **A model trained on one dataset is narrow.** Out of domain, the SN2-only model stays fairly precise but misses most buildings,
   and it collapses as look angle grows.
-* **A single model trained on the pooled data is general.** It loses only 0.012 on SN2 and roughly doubles F1 on SN4 and SN8.
+* **A single model trained on the pooled data is general.** It loses only 0.017 on SN2 and roughly doubles F1 on SN4 and SN8.
   * For reference, the SN4 paper's best baseline (TernausNet, trained on SN4) scored 0.62 / 0.43 / 0.22 on the three angle bands.
-    Our generalist scores 0.72 / 0.49 / 0.25, but on our own location-held-out split, not the official test set.
-* **Some SN4 collects stay near zero even for the generalist**: 29°, 32° and 53°, even though 29° and 53° were in training.
+    Our generalist scores 0.74 / 0.50 / 0.27, but on our own location-held-out split, not the official test set.
+* **SN6 stays hard** (0.44): recall is only 0.31 on Rotterdam's dense, small, shadowed buildings, and the generalist saw just
+  1,495 SN6 tiles. The SN6 challenge winner (~0.42) used SAR, so the scores are not comparable.
+* **Some SN4 collects stay near zero even for the generalist**: 29°, 32° and 53° (0.21 / 0.04 / 0.06), even though 29° and 53° were in training.
   Most other collects at similar angles score 0.5–0.7, so this looks like image/label misregistration in those collects, not a
   model limit. This has not been verified.
 * **SN7 is out of reach** for any 0.3 m model. At 4 m a house is about 2–3 px, and resampling to 0.3 m cannot create that detail.
   Sensor resolution, not the model, is the limit.
-* Reference scores from the other challenges are not comparable: the SN6 winner (~0.42) used SAR, and SN8 was scored with a
-  different, flood-attribute metric.
+* Reference scores from SN8 are not comparable: it was scored with a different, flood-attribute metric.
 
-Per-angle and per-region numbers: `results/transfer/{sn2only,generalist_nosn1}_convnextb.json`; run with `jobs/transfer_eval.py`.
+Per-angle and per-region numbers: `results/transfer/{sn2only,generalist_geo}_convnextb.json` and
+`results/transfer/sn2only_convnextb_sn6geo.json`; run with `jobs/transfer_eval.py`.
+
+### Reproducing XD_XD's 2017 winner on our split (in progress, not finished)
+
+To get a strict 1:1 comparison, `jobs/xdxd/` runs XD_XD's original code
+([BuildingDetectors_Round2/1-XD_XD](https://github.com/SpaceNetChallenge/BuildingDetectors_Round2)) **unmodified** on our
+train/val split. His SN2 weights were never released, so it has to be retrained. Only the 2017 environment is replaced:
+* Keras 1.1 / Theano 0.9 / CUDA 8 cannot run on current GPUs. `jobs/xdxd/shim/keras` re-implements the Keras-1 API
+  that his code uses (layers, `fit`/`fit_generator`, checkpoints, early stopping) on PyTorch.
+* 2017 library behaviour: numpy 1.23, pandas 1.5, shapely 1.8 (patched so empty polygons behave like shapely 1.5),
+  click 6.7, `gdal` replaced by a rasterio shim.
+* His OpenStreetMap layers came from Mapzen Metro Extracts, which went offline in 2018. `jobs/xdxd/osm_2017.py` rebuilds them
+  from the **2017-05-01 OSM planet** (61 GB) in the same imposm shapefile layout.
+* One environment bug cost several runs: CUDA initialisation segfaults if shapely 1.8 (bundled GEOS) is imported first,
+  so the shim initialises CUDA before anything else.
+
+Status: the full pipeline ran end to end in a small CPU smoke test, and on GPU the first two models trained normally
+(Paris v9s finished its 200-epoch schedule with early stopping and v13 was training). The runs then stopped when the
+pre-paid HF Jobs credit ran out. Vegas and Shanghai also need more than the 46 GB of RAM on an A10G for preprocessing
+(they passed on the 142 GB A100). Each city is an independent job of roughly 4–8 GPU-hours.
 
 ## Layout
 
@@ -157,6 +208,9 @@ jobs/sam_eval.py           HF Jobs (GPU): SAM 2.1 AMG / AMG+SigLIP2 / box-prompt
 jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training + tuned watershed + val scoring (--extra sn4,sn6,sn8)
 scripts/prepare_xds.py     other SpaceNet building datasets → 0.3 m RGB sub-tiles, labels, location splits
 jobs/transfer_eval.py      HF Jobs (GPU): cross-dataset scoring per angle band / region
+jobs/sam3_eval.py          HF Jobs (GPU): zero-shot SAM 3 text-prompted segmentation
+scripts/check_leakage.py   geographic train/test overlap audit (SN6, SN8)
+jobs/xdxd/                 XD_XD 2017 winner reproduction: Keras-1 → PyTorch shim, data staging, 2017 OSM rebuild
 results/                   JSON results, raw VLM outputs, SAM prompts
 ```
 
@@ -176,10 +230,13 @@ hf jobs uv run --flavor a100-large --timeout 90m -d \
 
 Everything ran on Hugging Face: Inference Providers for VLMs (~$0.70 total) and HF Jobs (1×A100-80GB, $2.50/h) for SAM and
 training (~2.8 GPU-hours incl. a smoke test and a billing-interrupted SAM run, ≈ $7). The generalization study
-(data prep, generalist training incl. a cancelled run with SN1, two transfer evals) added ≈ $14. Total ≈ $22.
+(data prep, generalist training incl. a cancelled run with SN1, two transfer evals) added ≈ $14. The second phase
+(geo-split generalist, DINOv3, SAM 3, the 2017 OSM rebuild on a CPU job and the partial XD_XD reproduction) used roughly
+another $20–25, until the pre-paid credit ran out.
 
 ## Ideas not tried (yet)
 
-* SAM 3 (text-prompted "building" segmentation) — gated model; needs access approval on the Hub.
+* Finish the XD_XD reproduction (needs credit; Vegas/Shanghai on a high-RAM GPU).
+* Train on SN4 + SN6 + SN8 only and score on SN2, to test generalisation to unseen cities.
 * 8-band multispectral input, larger crops / longer schedules, more ensemble members, multi-scale TTA.
-* Fine-tuning SAM 2.1 / a satellite-pretrained ViT backbone; using the supervised model's boxes as SAM prompts.
+* Fine-tuning SAM 3 on SpaceNet; using the supervised model's boxes as SAM prompts.

@@ -9,7 +9,7 @@
 (prepared by scripts/prepare_xds.py: RGB uint8 resampled to 0.3 m GSD).
 
 Scores F1 @ IoU>=0.5 (same scorer as SN2), pooled per group:
-  sn1: Rio | sn4: per look-angle band (NADIR/OFF/VOFF) + per collect | sn6: Rotterdam
+  (sn1 excluded: label quality) | sn4: per look-angle band (NADIR/OFF/VOFF) + per collect | sn6: Rotterdam
   sn7: Planet 4 m | sn8: per region (Germany / Louisiana)
 """
 import argparse
@@ -36,7 +36,7 @@ def main():
     ap.add_argument("--out", default="/out")
     ap.add_argument("--tag", required=True)
     ap.add_argument("--models", required=True, help="comma list of ckpt_path=encoder (ensemble mean)")
-    ap.add_argument("--datasets", default="sn1,sn4,sn6,sn7,sn8")
+    ap.add_argument("--datasets", default="sn4,sn6,sn7,sn8")
     ap.add_argument("--pp", default='{"t_mask": 0.4, "t_seed": 0.7, "min_seed": 30}')
     ap.add_argument("--tta", type=int, default=1)
     ap.add_argument("--limit", type=int, default=0)

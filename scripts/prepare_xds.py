@@ -10,7 +10,8 @@ SpaceNet releases, in the same form as our SN2 data:
 Output: data/xds/<ds>/images/<id>.png, labels.json {id: [wkt]}, meta.json {id: {...}},
         splits.json {"test": [...], "train": [...]}
 
-Datasets: sn1 (Rio, WV2 0.5 m), sn4 (Atlanta, WV2 0.5 m, 27 look angles),
+SN1 is supported but EXCLUDED from our runs: its labels are poorly aligned / incomplete.
+Datasets: sn1 (Rio, WV2 0.5 m; excluded), sn4 (Atlanta, WV2 0.5 m, 27 look angles),
           sn6 (Rotterdam, WV2 0.5 m optical), sn7 (Planet ~4 m monthly mosaics),
           sn8 (Germany + Louisiana-East, Maxar 0.3-0.8 m pre-event)
 Splits are by location (SN4: geographic tile, so a location is test at every angle).
@@ -351,7 +352,7 @@ def do_sn8(out, test_frac, workers):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="data/xds")
-    ap.add_argument("--only", default="sn1,sn4,sn6,sn7,sn8")
+    ap.add_argument("--only", default="sn4,sn6,sn7,sn8")  # sn1 excluded: label quality
     ap.add_argument("--workers", type=int, default=24)
     ap.add_argument("--train", action="store_true", help="also build training subsets")
     args = ap.parse_args()

@@ -294,8 +294,8 @@ def main():
         return probs
 
     tune_probs = infer(tune)
-    grid = [dict(t_mask=tm, t_seed=ts, min_seed=ms) for tm in (0.4, 0.5) for ts in (0.5, 0.6, 0.7)
-            for ms in (10, 30)]
+    grid = [dict(t_mask=tm, t_seed=ts, min_seed=ms) for tm in (0.3, 0.4, 0.5) for ts in (0.6, 0.7, 0.8)
+            for ms in (30, 60, 100)]
 
     def run_pp(probs, kw):
         with ThreadPoolExecutor(12) as ex:

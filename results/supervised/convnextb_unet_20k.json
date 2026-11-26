@@ -1,0 +1,79 @@
+{
+ "AOI_2_Vegas": {
+  "precision": 0.9174,
+  "recall": 0.8681,
+  "f1": 0.8921,
+  "tp": 9434,
+  "fp": 849,
+  "fn": 1433
+ },
+ "AOI_3_Paris": {
+  "precision": 0.843,
+  "recall": 0.7746,
+  "f1": 0.8073,
+  "tp": 993,
+  "fp": 185,
+  "fn": 289
+ },
+ "AOI_4_Shanghai": {
+  "precision": 0.7311,
+  "recall": 0.688,
+  "f1": 0.7089,
+  "tp": 4566,
+  "fp": 1679,
+  "fn": 2071
+ },
+ "AOI_5_Khartoum": {
+  "precision": 0.6357,
+  "recall": 0.5876,
+  "f1": 0.6107,
+  "tp": 1218,
+  "fp": 698,
+  "fn": 855
+ },
+ "overall_f1": 0.7548,
+ "postproc": {
+  "t_mask": 0.4,
+  "t_seed": 0.7,
+  "min_seed": 30
+ },
+ "tune_score": {
+  "AOI_2_Vegas": {
+   "precision": 0.9129,
+   "recall": 0.8789,
+   "f1": 0.8956,
+   "tp": 4400,
+   "fp": 420,
+   "fn": 606
+  },
+  "AOI_3_Paris": {
+   "precision": 0.7879,
+   "recall": 0.7359,
+   "f1": 0.7611,
+   "tp": 680,
+   "fp": 183,
+   "fn": 244
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.7198,
+   "recall": 0.6844,
+   "f1": 0.7016,
+   "tp": 2340,
+   "fp": 911,
+   "fn": 1079
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6205,
+   "recall": 0.5757,
+   "f1": 0.5973,
+   "tp": 654,
+   "fp": 400,
+   "fn": 482
+  },
+  "overall_f1": 0.7389
+ },
+ "encoder": "tu-convnext_base.fb_in22k_ft_in1k",
+ "arch": "Unet",
+ "steps": 20000,
+ "wall_minutes": 53.1
+}

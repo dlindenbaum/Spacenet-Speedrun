@@ -21,6 +21,7 @@ import hashlib
 import io
 import json
 import math
+import os
 import re
 import urllib.parse
 import urllib.request
@@ -33,6 +34,7 @@ import numpy as np
 import pandas as pd
 import rasterio
 from shapely import affinity, wkt
+from shapely.ops import unary_union
 from shapely.geometry import box, shape, Polygon, MultiPolygon
 from tqdm import tqdm
 
@@ -250,13 +252,35 @@ def do_sn4(out, n_loc_test, n_loc_train, train_angles, workers):
 
 
 # ------------------------------------------------------------------ SN6 Rotterdam (optical)
+def tile_bounds(key):
+    """Native-CRS footprint of a remote GeoTIFF (header read only)."""
+    for i in range(4):
+        try:
+            with rasterio.open(f"/vsicurl/{S3}/{key}") as r:
+                return box(*r.bounds)
+        except Exception:
+            if i == 3:
+                return None
+
+
 def do_sn6(out, n_test, n_train, workers):
+    """SN6 tiles are cut from overlapping imaging strips, so tile numbers do not separate ground.
+    Split geographically: 1 km grid cells (by tile centroid) are hashed into test (~15 %); a train tile
+    is kept only if its footprint does not touch any test tile (plus a 50 m buffer)."""
     w = Writer(out, "sn6")
     base = "spacenet/SN6_buildings/train/AOI_11_Rotterdam/"
     keys = [k for k in list_keys(base + "PS-RGB/") if k.endswith(".tif")]
     tid = lambda k: re.search(r"PS-RGB_(.*)\.tif", k).group(1)
-    test = [k for k in keys if h(tid(k).split("tile_")[1]) < 100][:n_test]
-    train = [k for k in keys if h(tid(k).split("tile_")[1]) >= 100][:n_train]
+    os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
+    with ThreadPoolExecutor(32) as ex:
+        bnds = dict(zip(keys, ex.map(tile_bounds, keys)))
+    keys = [k for k in keys if bnds[k] is not None]
+    cell = lambda b: f"{int(b.centroid.x // 1000)}_{int(b.centroid.y // 1000)}"
+    test = [k for k in keys if h(cell(bnds[k]), "sn6geo") < 150]
+    test_area = unary_union([bnds[k] for k in test]).buffer(50)
+    train = [k for k in keys if k not in set(test) and not bnds[k].intersects(test_area)]
+    test, train = test[:n_test], train[:n_train]
+    print("sn6 geo split: test", len(test), "train", len(train), "of", len(keys))
     sample = [read_raster(fetch(k))[0] for k in test[:60]]
     lo, hi = stretch_params(sample)
 
@@ -265,7 +289,7 @@ def do_sn6(out, n_test, n_train, workers):
         a, tr, crs = read_raster(fetch(k))
         g = json.loads(fetch(f"{base}geojson_buildings/SN6_Train_AOI_11_Rotterdam_Buildings_{tid(k)}.geojson"))
         polys = [p for f in g["features"] if f["geometry"] for p in polys_of(geo_to_pix(shape(f["geometry"]), tr))]
-        w.add("sn6_" + tid(k).split("tile_")[1], to_u8(a, lo, hi), polys, abs(tr.a), split, city="Rotterdam")
+        w.add("sn6_" + tid(k), to_u8(a, lo, hi), polys, abs(tr.a), split, city="Rotterdam")
 
     with ThreadPoolExecutor(workers) as ex:
         list(tqdm(ex.map(proc, [(k, "test") for k in test] + [(k, "train") for k in train]),

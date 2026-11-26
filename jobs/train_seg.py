@@ -108,8 +108,64 @@ STD = np.array([0.229, 0.224, 0.225], np.float32)
 
 
 # ------------------------------------------------------------------ model / loss
+class DinoUNet(torch.nn.Module):
+    """DINOv3 ViT encoder (stride 16) + simple feature pyramid + light conv stem for fine detail,
+    fused by a U-Net style decoder. Input is ImageNet-normalised (like the smp models) and is
+    re-normalised to the backbone's own statistics inside."""
+
+    def __init__(self, name="vit_large_patch16_dinov3.sat493m", idx=(5, 11, 17, 23)):
+        super().__init__()
+        import timm
+        nn = torch.nn
+        self.vit = timm.create_model(name, pretrained=True, dynamic_img_size=True)
+        self.idx = idx
+        c = self.vit.embed_dim
+        cfg = self.vit.pretrained_cfg
+        m_in, s_in = torch.tensor(MEAN), torch.tensor(STD)
+        m_b, s_b = torch.tensor(cfg["mean"]), torch.tensor(cfg["std"])
+        # x_b = (x * s_in + m_in - m_b) / s_b
+        self.register_buffer("a", (s_in / s_b).view(1, 3, 1, 1))
+        self.register_buffer("b", ((m_in - m_b) / s_b).view(1, 3, 1, 1))
+
+        def cbr(i, o, k=3, s=1):
+            return nn.Sequential(nn.Conv2d(i, o, k, s, k // 2, bias=False), nn.BatchNorm2d(o), nn.ReLU(inplace=True))
+
+        self.p4 = nn.Sequential(nn.ConvTranspose2d(c, 256, 2, 2), nn.GELU(), nn.ConvTranspose2d(256, 128, 2, 2))
+        self.p8 = nn.ConvTranspose2d(c, 256, 2, 2)
+        self.p16 = nn.Conv2d(2 * c, 512, 1)
+        self.stem2 = nn.Sequential(cbr(3, 32, s=2), cbr(32, 64))
+        self.stem4 = nn.Sequential(cbr(64, 96, s=2), cbr(96, 128))
+        self.d16 = cbr(512, 256)
+        self.d8 = nn.Sequential(cbr(256 + 256, 256), cbr(256, 256))
+        self.d4 = nn.Sequential(cbr(256 + 128 + 128, 128), cbr(128, 128))
+        self.d2 = nn.Sequential(cbr(128 + 64, 64), cbr(64, 64))
+        self.d1 = nn.Sequential(cbr(64 + 3, 32), nn.Conv2d(32, 3, 1))
+
+    def param_groups(self, lr):
+        vit = list(self.vit.parameters())
+        ids = {id(q) for q in vit}
+        return [dict(params=vit, lr=lr * 0.1), dict(params=[q for q in self.parameters() if id(q) not in ids], lr=lr)]
+
+    def forward(self, x):
+        up = lambda t, r: F.interpolate(t, size=r.shape[-2:], mode="bilinear", align_corners=False)
+        xb = (x * self.a + self.b).contiguous()
+        f = self.vit.forward_intermediates(xb, indices=list(self.idx), intermediates_only=True)
+        s2 = self.stem2(x)
+        s4 = self.stem4(s2)
+        y = self.d16(self.p16(torch.cat([f[2], f[3]], 1)))
+        y = self.d8(torch.cat([up(y, self.p8(f[1])), self.p8(f[1])], 1))
+        p4 = self.p4(f[0])
+        y = self.d4(torch.cat([up(y, p4), p4, up(s4, p4)], 1))
+        y = self.d2(torch.cat([up(y, s2), s2], 1))
+        return self.d1(torch.cat([up(y, x), x], 1))
+
+
 def build_model(encoder, arch="Unet"):
     import segmentation_models_pytorch as smp
+
+    if encoder.startswith("dinov3"):
+        return DinoUNet({"dinov3": "vit_large_patch16_dinov3.sat493m",
+                         "dinov3-web": "vit_large_patch16_dinov3.lvd1689m"}[encoder])
 
     w = True if encoder.startswith("tu-") else "imagenet"
     return getattr(smp, arch)(encoder_name=encoder, encoder_weights=w, classes=3)
@@ -276,7 +332,8 @@ def main():
         ds = TileDS(imgs, masks, args.crop, args.steps * args.bs, weights=weights)
         dl = torch.utils.data.DataLoader(ds, batch_size=args.bs, num_workers=args.workers, drop_last=True,
                                          pin_memory=True, persistent_workers=True, prefetch_factor=4)
-        opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
+        opt = torch.optim.AdamW(model.param_groups(args.lr) if hasattr(model, "param_groups") else model.parameters(),
+                                lr=args.lr, weight_decay=1e-4)
         warm = 500
         sched = torch.optim.lr_scheduler.LambdaLR(
             opt, lambda s: min(1, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(s, args.steps) / args.steps)))

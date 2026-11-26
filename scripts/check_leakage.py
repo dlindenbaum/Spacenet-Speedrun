@@ -30,8 +30,11 @@ def check(name, test, train):
 base = "spacenet/SN6_buildings/train/AOI_11_Rotterdam/"
 keys = [k for k in P.list_keys(base + "PS-RGB/") if k.endswith(".tif")]
 tid = lambda k: re.search(r"PS-RGB_(.*)\.tif", k).group(1)
-test = [k for k in keys if P.h(tid(k).split("tile_")[1]) < 100][:299]
-train = [k for k in keys if P.h(tid(k).split("tile_")[1]) >= 100][:1499]
+# current geographic split, rebuilt from the dataset's own ids
+sp = json.load(open("data/xds/sn6/splits.json"))
+idk = {"sn6_" + tid(k): k for k in keys}
+base_id = lambda s: s.rsplit("_s", 1)[0] if s.rsplit("_s", 1)[-1].isdigit() else s
+test = sorted({idk[base_id(i)] for i in sp["test"]}); train = sorted({idk[base_id(i)] for i in sp["train"]})
 check("SN6", test, train)
 for reg in ["Germany_Training_Public", "Louisiana-East_Training_Public"]:
     m = pd.read_csv(io.BytesIO(P.fetch(f"spacenet/SN8_floods/{reg}/{reg}_label_image_mapping.csv")))

@@ -3,8 +3,9 @@
 # code UNMODIFIED, for one city: train on our `train` tiles, predict our `val` tiles.
 # Only the environment differs from 2017: Keras-1.1/Theano -> PyTorch shim (shim/keras), shapely-1.5
 # empty-polygon behaviour (shim/sitecustomize.py), `import gdal` -> rasterio (shim/gdal.py),
-# Mapzen OSM extracts -> 2017-05-15 OSM rebuilt from Overpass (osm_2017.py).
-# Usage (HF Job, image pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime):
+# Mapzen OSM extracts -> OSM planet 2017-05-01 rebuilt into the same shapefiles (osm_2017.py).
+# Usage (HF Job, image python:3.11-bookworm; the conda pytorch image segfaults reading PyTables HDF5
+#   once torch is imported, so torch comes from PyPI as in the local smoke test):
 #   bash /sn2/xdxd/run_xdxd.sh AOI_3_Paris
 set -euo pipefail
 AOI=$1
@@ -14,7 +15,7 @@ exec > >(tee -a $OUT/run.log) 2>&1
 echo "== $(date) start $AOI"
 
 apt-get update -qq && apt-get install -y -qq --no-install-recommends openjdk-17-jre-headless unzip git >/dev/null
-pip install -q -r /sn2/xdxd/requirements.txt && pip install -q --no-deps click==6.7  # 2017 click: underscore command names
+pip install -q torch==2.5.1 && pip install -q -r /sn2/xdxd/requirements.txt && pip install -q --no-deps click==6.7  # 2017 click: underscore command names
 
 git clone -q https://github.com/SpaceNetChallenge/BuildingDetectors_Round2 /tmp/bd2
 echo "XD_XD code commit: $(git -C /tmp/bd2 rev-parse HEAD)"

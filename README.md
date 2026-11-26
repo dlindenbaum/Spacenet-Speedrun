@@ -103,7 +103,13 @@ comparable but not identical to the leaderboard. Precision/recall per city are i
 
 All other SpaceNet building datasets are resampled to SN2's 0.3 m GSD, converted to 8-bit RGB, and cut into sub-tiles of at most 1,600 px
 (`scripts/prepare_xds.py`). Scoring uses the same F1 @ IoU ≥ 0.5 scorer, with TP/FP/FN pooled per group. Test splits are
-held out **by location**: in SN4, a test location is test at all 27 look angles.
+held out **by location**: in SN4, a test location is test at all 27 look angles, and none of the 40 test locations appears in training
+(0 overlap; the 300 train locations are disjoint).
+`scripts/check_leakage.py` checks the other datasets by geographic footprint:
+* **SN8 is clean**: 0 of 48 Germany and 3 of 142 Louisiana test tiles touch a training image, covering 1.4 % of test area on average.
+* **SN6 leaks**: its tiles come from overlapping imaging strips, so a split by tile number does not separate ground.
+  All 299 test tiles are 99.8 % covered by training images. **The generalist's SN6 score is therefore invalid**;
+  the SN2-only SN6 score is still valid, because that model never saw SN6.
 
 * **SN2-only**: the 0.755 ConvNeXt-B above, applied zero-shot.
 * **Generalist**: the same recipe, trained on SN2 + the SN4/SN6/SN8 train splits (60 % of crops from the extra datasets, area-weighted),
@@ -117,7 +123,7 @@ held out **by location**: in SN4, a test location is test at all 27 look angles.
 | SN4 Atlanta, nadir ≤ 25° | 0.394 | **0.722** | 0.77 / 0.68 |
 | SN4 Atlanta, off-nadir 26–39° | 0.195 | **0.489** | 0.56 / 0.44 |
 | SN4 Atlanta, very off-nadir ≥ 40° | 0.025 | **0.246** | 0.37 / 0.18 |
-| SN6 Rotterdam (optical PS-RGB) | 0.322 | **0.471** | 0.75 / 0.34 |
+| SN6 Rotterdam (optical PS-RGB) | 0.322 | ~~0.471~~ (leaked, invalid) | – |
 | SN8 Louisiana-East (pre-flood) | 0.534 | **0.813** | 0.82 / 0.80 |
 | SN8 Germany (pre-flood) | 0.107 | **0.600** | 0.57 / 0.63 |
 | SN7 Planet 4 m (unseen) | 0.0005 | 0.000 | – |
@@ -125,14 +131,12 @@ held out **by location**: in SN4, a test location is test at all 27 look angles.
 Takeaways:
 * **A model trained on one dataset is narrow.** Out of domain, the SN2-only model stays fairly precise but misses most buildings,
   and it collapses as look angle grows.
-* **A single model trained on the pooled data is general.** It loses only 0.012 on SN2 and roughly doubles F1 on every other optical
-  0.3 m dataset.
+* **A single model trained on the pooled data is general.** It loses only 0.012 on SN2 and roughly doubles F1 on SN4 and SN8.
   * For reference, the SN4 paper's best baseline (TernausNet, trained on SN4) scored 0.62 / 0.43 / 0.22 on the three angle bands.
     Our generalist scores 0.72 / 0.49 / 0.25, but on our own location-held-out split, not the official test set.
 * **Some SN4 collects stay near zero even for the generalist**: 29°, 32° and 53°, even though 29° and 53° were in training.
   Most other collects at similar angles score 0.5–0.7, so this looks like image/label misregistration in those collects, not a
   model limit. This has not been verified.
-* **SN6's low recall** is a domain gap: Rotterdam's optical tiles are dense row houses with an unusual colour balance.
 * **SN7 is out of reach** for any 0.3 m model. At 4 m a house is about 2–3 px, and resampling to 0.3 m cannot create that detail.
   Sensor resolution, not the model, is the limit.
 * Reference scores from the other challenges are not comparable: the SN6 winner (~0.42) used SAR, and SN8 was scored with a

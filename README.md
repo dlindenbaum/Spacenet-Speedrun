@@ -191,7 +191,7 @@ train/val split. His SN2 weights were never released, so it has to be retrained.
   so the shim initialises CUDA before anything else.
 
 Status: the full pipeline ran end to end in a small CPU smoke test, and on GPU the first two models trained normally
-(Paris v9s finished its 200-epoch schedule with early stopping and v13 was training). The runs then stopped when the
+(Paris v9s early-stopped after 11 epochs and v13 was training; Khartoum v9s reached epoch 38). The runs then stopped when the
 pre-paid HF Jobs credit ran out. Vegas and Shanghai also need more than the 46 GB of RAM on an A10G for preprocessing
 (they passed on the 142 GB A100). Each city is an independent job of roughly 4–8 GPU-hours.
 

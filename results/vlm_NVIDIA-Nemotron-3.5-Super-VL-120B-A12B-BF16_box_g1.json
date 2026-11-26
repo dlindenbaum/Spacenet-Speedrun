@@ -1,0 +1,42 @@
+{
+ "AOI_2_Vegas": {
+  "precision": 0.1784,
+  "recall": 0.0633,
+  "f1": 0.0935,
+  "tp": 43,
+  "fp": 198,
+  "fn": 636
+ },
+ "AOI_3_Paris": {
+  "precision": 0.0947,
+  "recall": 0.0497,
+  "f1": 0.0652,
+  "tp": 9,
+  "fp": 86,
+  "fn": 172
+ },
+ "AOI_4_Shanghai": {
+  "precision": 0.1373,
+  "recall": 0.0625,
+  "f1": 0.0859,
+  "tp": 14,
+  "fp": 88,
+  "fn": 210
+ },
+ "AOI_5_Khartoum": {
+  "precision": 0.2254,
+  "recall": 0.0721,
+  "f1": 0.1092,
+  "tp": 39,
+  "fp": 134,
+  "fn": 502
+ },
+ "overall_f1": 0.0885,
+ "box_order": "xyxy",
+ "n_pred": 611,
+ "n_gt": 1649,
+ "model": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16",
+ "mode": "box",
+ "grid": 1,
+ "api_cost_usd_this_run": 0.1577
+}

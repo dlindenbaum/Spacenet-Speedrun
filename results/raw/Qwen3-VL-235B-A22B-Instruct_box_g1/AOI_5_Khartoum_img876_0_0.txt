@@ -1,0 +1,21 @@
+```json
+[
+	{"box_2d": [0, 237, 103, 330], "label": "building"},
+	{"box_2d": [0, 637, 90, 760], "label": "building"},
+	{"box_2d": [0, 760, 127, 920], "label": "building"},
+	{"box_2d": [0, 950, 300, 1000], "label": "building"},
+	{"box_2d": [87, 560, 300, 675], "label": "building"},
+	{"bbox_2d": [103, 205, 300, 425], "label": "building"},
+	{"bbox_2d": [357, 520, 557, 637], "label": "building"},
+	{"bbox_2d": [410, 650, 557, 745], "label": "building"},
+	{"bbox_2d": [435, 235, 530, 330], "label": "building"},
+	{"bbox_2d": [650, 0, 780, 85], "label": "building"},
+	{"bbox_2d": [660, 85, 800, 175], "label": "building"},
+	{"bbox_2d": [700, 185, 810, 275], "label": "building"},
+	{"bbox_2d": [720, 330, 1000, 860], "label": "building"},
+	{"bbox_2d": [780, 880, 1000, 1000], "label": "building"},
+	{"bbox_2d": [800, 85, 950, 275], "label": "building"},
+	{"bbox_2d": [840, 0, 880, 75], "label": "building"},
+	{"bbox_2d": [940, 0, 1000, 260], "label": "building"}
+]
+```

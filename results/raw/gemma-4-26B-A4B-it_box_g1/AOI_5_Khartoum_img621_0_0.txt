@@ -1,0 +1,14 @@
+```json
+[
+  {"box_2d": [421, 68, 494, 264], "label": "building footprint"},
+  {"box_2d": [565, 176, 665, 298], "label": "building footprint"},
+  {"box_2d": [641, 112, 734, 204], "label": "building footprint"},
+  {"box_2d": [367, 296, 464, 636], "label": "building footprint"},
+  {"box_2d": [851, 230, 927, 436], "label": "building footprint"},
+  {"box_2d": [694, 464, 855, 730], "label": "building footprint"},
+  {"box_2d": [274, 818, 371, 984], "label": "building footprint"},
+  {"box_2d": [560, 894, 774, 1000], "label": "building footprint"},
+  {"box_2d": [65, 876, 198, 1000], "label": "building footprint"},
+  {"box_2d": [355, 818, 484, 924], "label": "building footprint"}
+]
+```

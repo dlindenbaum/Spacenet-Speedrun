@@ -1,0 +1,42 @@
+{
+ "AOI_2_Vegas": {
+  "precision": 0.1118,
+  "recall": 0.2356,
+  "f1": 0.1517,
+  "tp": 160,
+  "fp": 1271,
+  "fn": 519
+ },
+ "AOI_3_Paris": {
+  "precision": 0.0118,
+  "recall": 0.0387,
+  "f1": 0.018,
+  "tp": 7,
+  "fp": 588,
+  "fn": 174
+ },
+ "AOI_4_Shanghai": {
+  "precision": 0.0446,
+  "recall": 0.2277,
+  "f1": 0.0746,
+  "tp": 51,
+  "fp": 1092,
+  "fn": 173
+ },
+ "AOI_5_Khartoum": {
+  "precision": 0.0873,
+  "recall": 0.1885,
+  "f1": 0.1194,
+  "tp": 102,
+  "fp": 1066,
+  "fn": 439
+ },
+ "overall_f1": 0.0909,
+ "box_order": "xyxy",
+ "n_pred": 4337,
+ "n_gt": 1649,
+ "model": "Qwen/Qwen3-VL-235B-A22B-Instruct",
+ "mode": "box",
+ "grid": 1,
+ "api_cost_usd_this_run": 0.2729
+}

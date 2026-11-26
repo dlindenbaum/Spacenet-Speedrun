@@ -1,0 +1,8 @@
+```json
+[
+  {"box_2d": [0, 0, 426, 888], "label": "building footprint"},
+  {"box_2d": [744, 623, 1000, 1000], "label": "building footprint"},
+  {"box_2d": [444, 813, 773, 1000], "label": "building footprint"},
+  {"box_2d": [916, 123, 1000, 368], "label": "building footprint"}
+]
+```

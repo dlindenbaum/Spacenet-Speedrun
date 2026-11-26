@@ -1,0 +1,42 @@
+{
+ "AOI_2_Vegas": {
+  "precision": 0.3439,
+  "recall": 0.2239,
+  "f1": 0.2712,
+  "tp": 152,
+  "fp": 290,
+  "fn": 527
+ },
+ "AOI_3_Paris": {
+  "precision": 0.0424,
+  "recall": 0.0276,
+  "f1": 0.0334,
+  "tp": 5,
+  "fp": 113,
+  "fn": 176
+ },
+ "AOI_4_Shanghai": {
+  "precision": 0.2222,
+  "recall": 0.125,
+  "f1": 0.16,
+  "tp": 28,
+  "fp": 98,
+  "fn": 196
+ },
+ "AOI_5_Khartoum": {
+  "precision": 0.2723,
+  "recall": 0.1072,
+  "f1": 0.1538,
+  "tp": 58,
+  "fp": 155,
+  "fn": 483
+ },
+ "overall_f1": 0.1546,
+ "box_order": "yxyx",
+ "n_pred": 899,
+ "n_gt": 1649,
+ "model": "google/gemma-4-26B-A4B-it",
+ "mode": "box",
+ "grid": 1,
+ "api_cost_usd_this_run": 0.0114
+}

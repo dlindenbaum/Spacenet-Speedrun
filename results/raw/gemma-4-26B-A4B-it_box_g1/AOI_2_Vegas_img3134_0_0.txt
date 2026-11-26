@@ -1,0 +1,31 @@
+```json
+[
+  {"box_2d": [57, 26, 163, 174], "label": "building footprint"},
+  {"box_2d": [54, 264, 171, 384], "label": "building footprint"},
+  {"box_2d": [54, 376, 171, 498], "label": "building footprint"},
+  {"box_2d": [201, 384, 304, 502], "label": "building footprint"},
+  {"box_2d": [201, 264, 304, 384], "label": "building footprint"},
+  {"box_2d": [201, 16, 304, 144], "label": "building footprint"},
+  {"box_2d": [74, 702, 154, 834], "label": "building footprint"},
+  {"box_2d": [163, 754, 254, 834], "label": "building footprint"},
+  {"box_2d": [284, 720, 363, 784], "label": "building footprint"},
+  {"box_2d": [370, 744, 457, 846], "label": "building footprint"},
+  {"box_2d": [460, 744, 550, 840], "label": "building footprint"},
+  {"box_2d": [569, 740, 654, 834], "label": "building footprint"},
+  {"box_2d": [633, 740, 713, 840], "label": "building footprint"},
+  {"box_2d": [848, 784, 953, 884], "label": "building footprint"},
+  {"box_2d": [848, 434, 957, 534], "label": "building footprint"},
+  {"box_2d": [848, 264, 957, 384], "label": "building footprint"},
+  {"box_2d": [588, 294, 697, 404], "label": "building footprint"},
+  {"box_2d": [588, 414, 687, 544], "label": "building footprint"},
+  {"box_2d": [592, 74, 692, 184], "label": "building footprint"},
+  {"box_2d": [436, 44, 536, 174], "label": "building footprint"},
+  {"box_2d": [592, 0, 697, 64], "label": "building footprint"},
+  {"box_2d": [848, 164, 957, 264], "label": "building footprint"},
+  {"box_2d": [848, 884, 957, 974], "label": "building footprint"},
+  {"box_2d": [943, 764, 1000, 864], "label": "building footprint"},
+  {"box_2d": [848, 0, 957, 64], "label": "building footprint"},
+  {"box_2d": [284, 944, 363, 1000], "label": "building footprint"},
+  {"box_2d": [71, 914, 166, 1000], "label": "building footprint"}
+]
+```

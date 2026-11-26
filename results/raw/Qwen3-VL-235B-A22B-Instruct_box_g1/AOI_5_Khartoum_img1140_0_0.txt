@@ -1,0 +1,10 @@
+```json
+[
+	{"bbox_2d": [40, 550, 310, 999], "label": "building footprint (roof)"},
+	{"bbox_2d": [287, 585, 562, 999], "label": "building footprint (roof)"},
+	{"bbox_2d": [525, 902, 752, 999], "label": "building footprint (roof)"},
+	{"bbox_2d": [0, 562, 55, 685], "label": "building footprint (roof)"},
+	{"bbox_2d": [0, 775, 20, 999], "label": "building footprint (roof)"},
+	{"bbox_2d": [935, 840, 999, 999], "label": "building footprint (roof)"}
+]
+```

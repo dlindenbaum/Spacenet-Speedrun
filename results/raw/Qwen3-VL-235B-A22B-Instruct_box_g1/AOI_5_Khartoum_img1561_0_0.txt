@@ -1,0 +1,29 @@
+```json
+[
+	{"box_2d": [140, 134, 267, 310], "label": "building"},
+	{"box_2d": [440, 134, 555, 310], "label": "building"},
+	{"bbox_2d": [600, 134, 715, 310], "label": "building"},
+	{"bbox_2d": [715, 134, 830, 310], "label": "building"},
+	{"bbox_2d": [815, 110, 925, 300], "label": "building"},
+	{"bbox_2d": [885, 330, 999, 445], "label": "building"},
+	{"bbox_2d": [860, 555, 999, 665], "label": "building"},
+	{"bbox_2d": [785, 695, 930, 999], "label": "building"},
+	{"bbox_2d": [605, 865, 710, 999], "label": "building"},
+	{"bbox_2d": [515, 865, 605, 999], "label": "building"},
+	{"bbox_2d": [415, 865, 515, 999], "label": "building"},
+	{"bbox_2d": [315, 865, 415, 999], "label": "building"},
+	{"bbox_2d": [115, 745, 235, 875], "label": "building"},
+	{"bbox_2d": [140, 695, 235, 745], "label": "building"},
+	{"bbox_2d": [120, 515, 255, 670], "label": "building"},
+	{"bbox_2d": [255, 515, 345, 625], "label": "building"},
+	{"bbox_2d": [345, 515, 435, 625], "label": "building"},
+	{"bbox_2d": [435, 515, 530, 625], "label": "building"},
+	{"bbox_2d": [530, 515, 640, 625], "label": "building"},
+	{"bbox_2d": [445, 355, 540, 500], "label": "building"},
+	{"bbox_2d": [345, 355, 445, 500], "label": "building"},
+	{"bbox_2d": [0, 245, 40, 330], "label": "building"},
+	{"bbox_2d": [0, 430, 30, 500], "label": "building"},
+	{"bbox_2d": [0, 890, 30, 999], "label": "building"},
+	{"bbox_2d": [90, 900, 200, 999], "label": "building"}
+]
+```

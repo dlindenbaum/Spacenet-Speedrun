@@ -99,6 +99,47 @@ Biggest gains are in the hard cities (Shanghai +0.11, Khartoum +0.07, Paris +0.0
 Caveat: our `val` is a held-out slice of the public training AOIs, not the (unreleased) official test set, so numbers are
 comparable but not identical to the leaderboard. Precision/recall per city are in `results/supervised/*.json`.
 
+### How general is it? Other SpaceNet building datasets
+
+All other SpaceNet building datasets are resampled to SN2's 0.3 m GSD, converted to 8-bit RGB, and cut into sub-tiles of at most 1,600 px
+(`scripts/prepare_xds.py`). Scoring uses the same F1 @ IoU ≥ 0.5 scorer, with TP/FP/FN pooled per group. Test splits are
+held out **by location**: in SN4, a test location is test at all 27 look angles.
+
+* **SN2-only**: the 0.755 ConvNeXt-B above, applied zero-shot.
+* **Generalist**: the same recipe, trained on SN2 + the SN4/SN6/SN8 train splits (60 % of crops from the extra datasets, area-weighted),
+  20k steps, 81 min on 1×A100.
+* **SN7** (Planet 4 m) is never trained on; it is a pure unseen-sensor test.
+* **SN1** (Rio) is excluded because its labels are poor quality.
+
+| Dataset (test split) | SN2-only F1 | **Generalist F1** | Generalist P / R |
+|---|---|---|---|
+| SN2 val (in-domain) | 0.755 | 0.743 | (per city in json) |
+| SN4 Atlanta, nadir ≤ 25° | 0.394 | **0.722** | 0.77 / 0.68 |
+| SN4 Atlanta, off-nadir 26–39° | 0.195 | **0.489** | 0.56 / 0.44 |
+| SN4 Atlanta, very off-nadir ≥ 40° | 0.025 | **0.246** | 0.37 / 0.18 |
+| SN6 Rotterdam (optical PS-RGB) | 0.322 | **0.471** | 0.75 / 0.34 |
+| SN8 Louisiana-East (pre-flood) | 0.534 | **0.813** | 0.82 / 0.80 |
+| SN8 Germany (pre-flood) | 0.107 | **0.600** | 0.57 / 0.63 |
+| SN7 Planet 4 m (unseen) | 0.0005 | 0.000 | – |
+
+Takeaways:
+* **A model trained on one dataset is narrow.** Out of domain, the SN2-only model stays fairly precise but misses most buildings,
+  and it collapses as look angle grows.
+* **A single model trained on the pooled data is general.** It loses only 0.012 on SN2 and roughly doubles F1 on every other optical
+  0.3 m dataset.
+  * For reference, the SN4 paper's best baseline (TernausNet, trained on SN4) scored 0.62 / 0.43 / 0.22 on the three angle bands.
+    Our generalist scores 0.72 / 0.49 / 0.25, but on our own location-held-out split, not the official test set.
+* **Some SN4 collects stay near zero even for the generalist**: 29°, 32° and 53°, even though 29° and 53° were in training.
+  Most other collects at similar angles score 0.5–0.7, so this looks like image/label misregistration in those collects, not a
+  model limit. This has not been verified.
+* **SN6's low recall** is a domain gap: Rotterdam's optical tiles are dense row houses with an unusual colour balance.
+* **SN7 is out of reach** for any 0.3 m model. At 4 m a house is about 2–3 px, and resampling to 0.3 m cannot create that detail.
+  Sensor resolution, not the model, is the limit.
+* Reference scores from the other challenges are not comparable: the SN6 winner (~0.42) used SAR, and SN8 was scored with a
+  different, flood-attribute metric.
+
+Per-angle and per-region numbers: `results/transfer/{sn2only,generalist_nosn1}_convnextb.json`; run with `jobs/transfer_eval.py`.
+
 ## Layout
 
 ```
@@ -109,7 +150,9 @@ scripts/make_shards.py     per-city uint8 .npy shards for fast loading in Jobs
 scripts/eval_vlm.py        zero-shot VLM benchmark (cached raw responses in results/raw/)
 scripts/export_prompts.py  VLM boxes → SAM box prompts
 jobs/sam_eval.py           HF Jobs (GPU): SAM 2.1 AMG / AMG+SigLIP2 / box-prompted SAM
-jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training + tuned watershed + val scoring
+jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training + tuned watershed + val scoring (--extra sn4,sn6,sn8)
+scripts/prepare_xds.py     other SpaceNet building datasets → 0.3 m RGB sub-tiles, labels, location splits
+jobs/transfer_eval.py      HF Jobs (GPU): cross-dataset scoring per angle band / region
 results/                   JSON results, raw VLM outputs, SAM prompts
 ```
 
@@ -128,7 +171,8 @@ hf jobs uv run --flavor a100-large --timeout 90m -d \
 ## Compute & cost
 
 Everything ran on Hugging Face: Inference Providers for VLMs (~$0.70 total) and HF Jobs (1×A100-80GB, $2.50/h) for SAM and
-training (~2.8 GPU-hours incl. a smoke test and a billing-interrupted SAM run, ≈ $7). Total ≈ $8.
+training (~2.8 GPU-hours incl. a smoke test and a billing-interrupted SAM run, ≈ $7). The generalization study
+(data prep, generalist training incl. a cancelled run with SN1, two transfer evals) added ≈ $14. Total ≈ $22.
 
 ## Ideas not tried (yet)
 

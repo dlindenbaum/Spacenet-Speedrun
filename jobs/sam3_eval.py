@@ -72,7 +72,7 @@ def main():
     ths = [float(t) for t in args.thresholds.split(",")]
     variants = [f"{p}_g{g}" for p in prompts for g in grids]
     raw = {v: {} for v in variants}  # iid -> [(score, wkt)]
-    od = Path(args.out) / "sam3_eval"
+    od = Path(args.out) / f"sam3_eval_{args.split}"
     od.mkdir(parents=True, exist_ok=True)
 
     @torch.no_grad()

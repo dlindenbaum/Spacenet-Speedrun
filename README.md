@@ -31,25 +31,40 @@ Source: DeepGlobe 2018 paper, Table 2 ([arXiv:1805.06561](https://arxiv.org/abs/
 
 ## Results so far
 
-### Zero-shot VLMs — boxes (eval_small, F1 @ IoU ≥ 0.5)
+### Zero-shot VLMs (eval_small: 100 val tiles, 1,649 buildings; F1 @ IoU ≥ 0.5)
 
 Prompt: "Detect EVERY building footprint … return JSON `box_2d` normalized 0–1000". Each model is scored with whichever box
-axis order it actually uses (Gemma: `[y0,x0,y1,x1]`; Qwen3-VL/Nemotron: `[x0,y0,x1,y1]`).
+axis order it actually emits (Gemma: `[y0,x0,y1,x1]`; Qwen3-VL/Nemotron: `[x0,y0,x1,y1]`). "2×2" = the tile is split into
+4 crops, each upsampled to 650 px and queried separately.
 
-| Model (HF Inference Providers) | Vegas | Paris | Shanghai | Khartoum | **Overall** | #pred / #GT | API cost |
+| Model (HF Inference Providers) | Output | Vegas | Paris | Shanghai | Khartoum | **Overall** | API cost |
 |---|---|---|---|---|---|---|---|
-| google/gemma-4-26B-A4B-it | 0.271 | 0.033 | 0.160 | 0.154 | **0.155** | 899 / 1649 | $0.011 |
-| google/gemma-4-31B-it | 0.247 | 0.045 | 0.124 | 0.158 | **0.143** | 937 / 1649 | $0.014 |
-| Qwen/Qwen3-VL-235B-A22B-Instruct | 0.152 | 0.018 | 0.075 | 0.119 | **0.091** | 4337 / 1649 | $0.27 |
-| nvidia/Nemotron-3.5-Super-VL-120B-A12B | 0.093 | 0.065 | 0.086 | 0.109 | **0.088** | 611 / 1649 | $0.16 |
+| google/gemma-4-31B-it | boxes, 2×2 crops | 0.487 | 0.138 | 0.240 | 0.252 | **0.279** | $0.04 |
+| google/gemma-4-26B-A4B-it | boxes, 2×2 crops | 0.424 | 0.080 | 0.200 | 0.213 | **0.229** | $0.03 |
+| google/gemma-4-26B-A4B-it | boxes | 0.271 | 0.033 | 0.160 | 0.154 | 0.155 | $0.01 |
+| google/gemma-4-31B-it | boxes | 0.247 | 0.045 | 0.124 | 0.158 | 0.143 | $0.01 |
+| Qwen/Qwen3-VL-235B-A22B-Instruct | boxes | 0.152 | 0.018 | 0.075 | 0.119 | 0.091 | $0.27 |
+| nvidia/Nemotron-3.5-Super-VL-120B-A12B | boxes | 0.093 | 0.065 | 0.086 | 0.109 | 0.088 | $0.16 |
+| google/gemma-4-31B-it | polygons | 0.000 | 0.008 | 0.008 | 0.000 | 0.004 | $0.03 |
 
-Takeaway: general-purpose VLMs "see" buildings and get the coarse layout right, but their boxes are far too loose for
-IoU ≥ 0.5 on 5–20 m buildings, they merge rows of houses, and they under-count dense scenes. Even the best is ~4.5× below the
-2017 winner.
+### Zero-shot SAM 2.1 (hiera-large, tile upsampled 2×; same 100 tiles)
 
-### Zero-shot SAM 2.1 and supervised model
+| Pipeline | Vegas | Paris | Shanghai | Khartoum | **Overall** |
+|---|---|---|---|---|---|
+| *Oracle: ground-truth boxes → SAM 2.1* | *0.982* | *0.956* | *0.973* | *0.967* | ***0.970*** |
+| **Gemma 4 31B boxes (2×2 crops) → SAM 2.1** | 0.639 | 0.425 | 0.381 | 0.403 | **0.462** |
+| Gemma 4 26B boxes (2×2 crops) → SAM 2.1 | 0.600 | 0.433 | 0.395 | 0.364 | 0.448 |
+| Gemma 4 26B boxes → SAM 2.1 | 0.576 | 0.355 | 0.377 | 0.302 | 0.403 |
+| Gemma 4 31B boxes → SAM 2.1 | 0.554 | 0.260 | 0.337 | 0.339 | 0.373 |
+| SAM 2.1 automatic masks + SigLIP2 zero-shot "building roof" filter | 0.438 | 0.287 | 0.275 | 0.297 | 0.324 |
+| SAM 2.1 automatic masks (everything) | 0.196 | 0.135 | 0.149 | 0.161 | 0.160 |
 
-Pending — the HF prepaid balance ran out mid-run (see *Status*).
+Takeaways:
+* **SAM's masks are essentially solved**: given perfect boxes it scores 0.97. The bottleneck is *recognition* — finding every building.
+* VLMs alone can't produce footprints (boxes too loose for IoU ≥ 0.5, polygons are nonsense), but their boxes make excellent
+  SAM prompts: **VLM → SAM is a 0.46 fully zero-shot pipeline** — ~2/3 of the 2017 winner with zero SpaceNet training data,
+  for a few cents of API calls. Cropping (more pixels per building) is the biggest single lever for the VLMs.
+* Recall is the limiter (Gemma finds ~50–60 % of buildings, under-counting dense blocks).
 
 ## Layout
 

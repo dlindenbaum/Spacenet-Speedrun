@@ -1,0 +1,5 @@
+I'm sorry, but I cannot identify any buildings in this image. The image appears to be a dark, textured surface (possibly forest, soil, or a dark material) without any discernible building footprints or structures.
+
+```json
+[]
+```

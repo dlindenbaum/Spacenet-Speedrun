@@ -1,0 +1,16 @@
+```json
+[
+  {"box_2d": [0, 412, 178, 688], "label": "building"},
+  {"box_2d": [183, 458, 428, 738], "label": "building"},
+  {"box_2d": [433, 454, 683, 742], "label": "building"},
+  {"box_2d": [444, 754, 622, 954], "label": "building"},
+  {"box_2d": [183, 742, 389, 967], "label": "building"},
+  {"box_2d": [78, 738, 189, 954], "label": "building"},
+  {"box_2d": [0, 742, 81, 954], "label": "building"},
+  {"box_2d": [189, 54, 389, 262], "label": "building"},
+  {"box_2d": [444, 42, 674, 262], "label": "building"},
+  {"box_2d": [0, 54, 141, 262], "label": "building"},
+  {"box_2d": [881, 212, 1000, 633], "label": "building"},
+  {"box_2d": [863, 683, 1000, 912], "label": "building"}
+]
+```

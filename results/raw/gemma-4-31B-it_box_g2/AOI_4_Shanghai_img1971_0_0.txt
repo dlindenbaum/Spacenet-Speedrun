@@ -1,0 +1,5 @@
+I cannot detect any building footprints in this image. The image appears to be a dark, textured surface (possibly soil, asphalt, or dense vegetation) with no discernible architectural structures or rooflines.
+
+```json
+[]
+```

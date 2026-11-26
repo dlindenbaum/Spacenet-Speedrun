@@ -1,0 +1,5 @@
+I cannot find any buildings in this image. The image is almost entirely black, with only a small, dark, non-descript sliver visible on the far left edge.
+
+```json
+[]
+```

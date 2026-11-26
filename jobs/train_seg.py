@@ -119,7 +119,9 @@ def loss_fn(logits, y):
 # ------------------------------------------------------------------ inference / postproc
 @torch.no_grad()
 def predict(model, img, tta=True):
-    """img uint8 HxWx3 (650) -> probs float16 3xBIGxBIG"""
+    """img uint8 HxWx3 (650) -> probs float16 3xBIGxBIG. `model` may be a list (ensemble mean)."""
+    if isinstance(model, (list, tuple)):
+        return (sum(predict(m, img, tta).astype(np.float32) for m in model) / len(model)).astype(np.float16)
     im = cv2.resize(img, (BIG, BIG), interpolation=cv2.INTER_LINEAR).astype(np.float32) / 255.0
     im = (im - MEAN) / STD
     x = np.zeros((PAD, PAD, 3), np.float32)
@@ -186,6 +188,7 @@ def main():
     ap.add_argument("--max_hours", type=float, default=3.0)
     ap.add_argument("--init_from", default="", help="checkpoint path to fine-tune / eval only")
     ap.add_argument("--eval_only", action="store_true")
+    ap.add_argument("--ensemble", default="", help="eval-only: comma list of ckpt_path=encoder")
     args = ap.parse_args()
     t_start = time.time()
 
@@ -273,6 +276,14 @@ def main():
 
     # ---- inference on tune + val
     model.eval()
+    if args.ensemble:
+        model = []
+        for item in args.ensemble.split(","):
+            ck, enc = item.split("=")
+            m = build_model(enc, args.arch).cuda().to(memory_format=torch.channels_last)
+            m.load_state_dict(torch.load(ck, map_location="cuda"))
+            model.append(m.eval())
+            log("ensemble member", ck, enc)
 
     def infer(ids):
         probs = {}
@@ -304,7 +315,7 @@ def main():
     res = score(gt, pred, val_ids)
     res["postproc"] = best[0]
     res["tune_score"] = best[1]
-    res["encoder"] = args.encoder
+    res["encoder"] = args.ensemble or args.encoder
     res["arch"] = args.arch
     res["steps"] = args.steps
     res["wall_minutes"] = round((time.time() - t_start) / 60, 1)

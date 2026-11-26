@@ -1,0 +1,4 @@
+I did not find any building footprints in this image.
+```json
+[]
+```

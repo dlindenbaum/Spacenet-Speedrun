@@ -1,0 +1,76 @@
+{
+ "box:gemma4_31b_g2": {
+  "AOI_2_Vegas": {
+   "precision": 0.6811,
+   "recall": 0.6009,
+   "f1": 0.6385,
+   "tp": 408,
+   "fp": 191,
+   "fn": 271
+  },
+  "AOI_3_Paris": {
+   "precision": 0.4431,
+   "recall": 0.4088,
+   "f1": 0.4253,
+   "tp": 74,
+   "fp": 93,
+   "fn": 107
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.3871,
+   "recall": 0.375,
+   "f1": 0.381,
+   "tp": 84,
+   "fp": 133,
+   "fn": 140
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.4518,
+   "recall": 0.3641,
+   "f1": 0.4033,
+   "tp": 197,
+   "fp": 239,
+   "fn": 344
+  },
+  "overall_f1": 0.462,
+  "n_pred": 1419,
+  "n_tiles": 100
+ },
+ "box:gemma4_26b_g2": {
+  "AOI_2_Vegas": {
+   "precision": 0.6447,
+   "recall": 0.5611,
+   "f1": 0.6,
+   "tp": 381,
+   "fp": 210,
+   "fn": 298
+  },
+  "AOI_3_Paris": {
+   "precision": 0.4471,
+   "recall": 0.4199,
+   "f1": 0.433,
+   "tp": 76,
+   "fp": 94,
+   "fn": 105
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.4009,
+   "recall": 0.3884,
+   "f1": 0.3946,
+   "tp": 87,
+   "fp": 130,
+   "fn": 137
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.4027,
+   "recall": 0.3327,
+   "f1": 0.3644,
+   "tp": 180,
+   "fp": 267,
+   "fn": 361
+  },
+  "overall_f1": 0.448,
+  "n_pred": 1425,
+  "n_tiles": 100
+ }
+}

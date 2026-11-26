@@ -1,0 +1,5 @@
+I cannot find any buildings in this image. It appears to be a close-up texture of a dark, organic material (like wood or soil) rather than a satellite image of a developed area.
+
+```json
+[]
+```

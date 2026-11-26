@@ -1,4 +1,12 @@
-"""Restore 2017 (shapely 1.5) behaviour XD_XD's code relies on: Polygon('POLYGON EMPTY').exterior is None."""
+"""Restore 2017 (shapely 1.5) behaviour XD_XD's code relies on: Polygon('POLYGON EMPTY').exterior is None.
+CUDA is initialised first: with shapely 1.8's bundled GEOS loaded, torch's lazy CUDA init segfaults."""
+try:
+    import torch
+
+    if torch.cuda.is_available():
+        torch.cuda.init()
+except Exception:  # pragma: no cover
+    pass
 try:
     from shapely.geometry import polygon as _p
 

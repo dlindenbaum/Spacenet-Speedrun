@@ -1,0 +1,1082 @@
+{
+ "building_g1@0.2": {
+  "AOI_2_Vegas": {
+   "precision": 0.7918,
+   "recall": 0.8292,
+   "f1": 0.8101,
+   "tp": 563,
+   "fp": 148,
+   "fn": 116
+  },
+  "AOI_3_Paris": {
+   "precision": 0.523,
+   "recall": 0.6906,
+   "f1": 0.5952,
+   "tp": 125,
+   "fp": 114,
+   "fn": 56
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.4832,
+   "recall": 0.6429,
+   "f1": 0.5517,
+   "tp": 144,
+   "fp": 154,
+   "fn": 80
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.5778,
+   "recall": 0.549,
+   "f1": 0.563,
+   "tp": 297,
+   "fp": 217,
+   "fn": 244
+  },
+  "overall_f1": 0.63,
+  "n_pred": 1762
+ },
+ "building_g1@0.3": {
+  "AOI_2_Vegas": {
+   "precision": 0.8582,
+   "recall": 0.8203,
+   "f1": 0.8389,
+   "tp": 557,
+   "fp": 92,
+   "fn": 122
+  },
+  "AOI_3_Paris": {
+   "precision": 0.6089,
+   "recall": 0.6796,
+   "f1": 0.6423,
+   "tp": 123,
+   "fp": 79,
+   "fn": 58
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.5622,
+   "recall": 0.625,
+   "f1": 0.592,
+   "tp": 140,
+   "fp": 109,
+   "fn": 84
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6347,
+   "recall": 0.5139,
+   "f1": 0.5679,
+   "tp": 278,
+   "fp": 160,
+   "fn": 263
+  },
+  "overall_f1": 0.6603,
+  "n_pred": 1538
+ },
+ "building_g1@0.4": {
+  "AOI_2_Vegas": {
+   "precision": 0.9117,
+   "recall": 0.8056,
+   "f1": 0.8554,
+   "tp": 547,
+   "fp": 53,
+   "fn": 132
+  },
+  "AOI_3_Paris": {
+   "precision": 0.676,
+   "recall": 0.6685,
+   "f1": 0.6722,
+   "tp": 121,
+   "fp": 58,
+   "fn": 60
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.6294,
+   "recall": 0.5536,
+   "f1": 0.5891,
+   "tp": 124,
+   "fp": 73,
+   "fn": 100
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.7103,
+   "recall": 0.4713,
+   "f1": 0.5667,
+   "tp": 255,
+   "fp": 104,
+   "fn": 286
+  },
+  "overall_f1": 0.6708,
+  "n_pred": 1335
+ },
+ "building_g1@0.5": {
+  "AOI_2_Vegas": {
+   "precision": 0.9422,
+   "recall": 0.7923,
+   "f1": 0.8608,
+   "tp": 538,
+   "fp": 33,
+   "fn": 141
+  },
+  "AOI_3_Paris": {
+   "precision": 0.7403,
+   "recall": 0.6298,
+   "f1": 0.6806,
+   "tp": 114,
+   "fp": 40,
+   "fn": 67
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.7039,
+   "recall": 0.4777,
+   "f1": 0.5691,
+   "tp": 107,
+   "fp": 45,
+   "fn": 117
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.75,
+   "recall": 0.3882,
+   "f1": 0.5116,
+   "tp": 210,
+   "fp": 70,
+   "fn": 331
+  },
+  "overall_f1": 0.6555,
+  "n_pred": 1157
+ },
+ "building_g1@0.6": {
+  "AOI_2_Vegas": {
+   "precision": 0.9576,
+   "recall": 0.7658,
+   "f1": 0.8511,
+   "tp": 520,
+   "fp": 23,
+   "fn": 159
+  },
+  "AOI_3_Paris": {
+   "precision": 0.7868,
+   "recall": 0.5912,
+   "f1": 0.6751,
+   "tp": 107,
+   "fp": 29,
+   "fn": 74
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.7248,
+   "recall": 0.3527,
+   "f1": 0.4745,
+   "tp": 79,
+   "fp": 30,
+   "fn": 145
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.8075,
+   "recall": 0.2791,
+   "f1": 0.4148,
+   "tp": 151,
+   "fp": 36,
+   "fn": 390
+  },
+  "overall_f1": 0.6039,
+  "n_pred": 975
+ },
+ "building_g2@0.2": {
+  "AOI_2_Vegas": {
+   "precision": 0.6494,
+   "recall": 0.8292,
+   "f1": 0.7283,
+   "tp": 563,
+   "fp": 304,
+   "fn": 116
+  },
+  "AOI_3_Paris": {
+   "precision": 0.3619,
+   "recall": 0.6298,
+   "f1": 0.4597,
+   "tp": 114,
+   "fp": 201,
+   "fn": 67
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.3691,
+   "recall": 0.6295,
+   "f1": 0.4653,
+   "tp": 141,
+   "fp": 241,
+   "fn": 83
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.442,
+   "recall": 0.6063,
+   "f1": 0.5113,
+   "tp": 328,
+   "fp": 414,
+   "fn": 213
+  },
+  "overall_f1": 0.5412,
+  "n_pred": 2312
+ },
+ "building_g2@0.3": {
+  "AOI_2_Vegas": {
+   "precision": 0.7767,
+   "recall": 0.8144,
+   "f1": 0.7951,
+   "tp": 553,
+   "fp": 159,
+   "fn": 126
+  },
+  "AOI_3_Paris": {
+   "precision": 0.4609,
+   "recall": 0.6188,
+   "f1": 0.5283,
+   "tp": 112,
+   "fp": 131,
+   "fn": 69
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.4459,
+   "recall": 0.6071,
+   "f1": 0.5142,
+   "tp": 136,
+   "fp": 169,
+   "fn": 88
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.5406,
+   "recall": 0.5656,
+   "f1": 0.5528,
+   "tp": 306,
+   "fp": 260,
+   "fn": 235
+  },
+  "overall_f1": 0.5976,
+  "n_pred": 1826
+ },
+ "building_g2@0.4": {
+  "AOI_2_Vegas": {
+   "precision": 0.8655,
+   "recall": 0.8056,
+   "f1": 0.8345,
+   "tp": 547,
+   "fp": 85,
+   "fn": 132
+  },
+  "AOI_3_Paris": {
+   "precision": 0.5274,
+   "recall": 0.5856,
+   "f1": 0.555,
+   "tp": 106,
+   "fp": 95,
+   "fn": 75
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.496,
+   "recall": 0.558,
+   "f1": 0.5252,
+   "tp": 125,
+   "fp": 127,
+   "fn": 99
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6059,
+   "recall": 0.4917,
+   "f1": 0.5429,
+   "tp": 266,
+   "fp": 173,
+   "fn": 275
+  },
+  "overall_f1": 0.6144,
+  "n_pred": 1524
+ },
+ "building_g2@0.5": {
+  "AOI_2_Vegas": {
+   "precision": 0.9119,
+   "recall": 0.7923,
+   "f1": 0.8479,
+   "tp": 538,
+   "fp": 52,
+   "fn": 141
+  },
+  "AOI_3_Paris": {
+   "precision": 0.6059,
+   "recall": 0.5691,
+   "f1": 0.5869,
+   "tp": 103,
+   "fp": 67,
+   "fn": 78
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.5714,
+   "recall": 0.5,
+   "f1": 0.5333,
+   "tp": 112,
+   "fp": 84,
+   "fn": 112
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6716,
+   "recall": 0.4233,
+   "f1": 0.5193,
+   "tp": 229,
+   "fp": 112,
+   "fn": 312
+  },
+  "overall_f1": 0.6219,
+  "n_pred": 1297
+ },
+ "building_g2@0.6": {
+  "AOI_2_Vegas": {
+   "precision": 0.9375,
+   "recall": 0.729,
+   "f1": 0.8202,
+   "tp": 495,
+   "fp": 33,
+   "fn": 184
+  },
+  "AOI_3_Paris": {
+   "precision": 0.6594,
+   "recall": 0.5028,
+   "f1": 0.5705,
+   "tp": 91,
+   "fp": 47,
+   "fn": 90
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.589,
+   "recall": 0.3839,
+   "f1": 0.4649,
+   "tp": 86,
+   "fp": 60,
+   "fn": 138
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.7168,
+   "recall": 0.2994,
+   "f1": 0.4224,
+   "tp": 162,
+   "fp": 64,
+   "fn": 379
+  },
+  "overall_f1": 0.5695,
+  "n_pred": 1038
+ },
+ "house_g1@0.2": {
+  "AOI_2_Vegas": {
+   "precision": 0.8053,
+   "recall": 0.81,
+   "f1": 0.8076,
+   "tp": 550,
+   "fp": 133,
+   "fn": 129
+  },
+  "AOI_3_Paris": {
+   "precision": 0.4841,
+   "recall": 0.674,
+   "f1": 0.5635,
+   "tp": 122,
+   "fp": 130,
+   "fn": 59
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.5581,
+   "recall": 0.4286,
+   "f1": 0.4848,
+   "tp": 96,
+   "fp": 76,
+   "fn": 128
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6546,
+   "recall": 0.5009,
+   "f1": 0.5675,
+   "tp": 271,
+   "fp": 143,
+   "fn": 270
+  },
+  "overall_f1": 0.6058,
+  "n_pred": 1521
+ },
+ "house_g1@0.3": {
+  "AOI_2_Vegas": {
+   "precision": 0.8599,
+   "recall": 0.7953,
+   "f1": 0.8263,
+   "tp": 540,
+   "fp": 88,
+   "fn": 139
+  },
+  "AOI_3_Paris": {
+   "precision": 0.5701,
+   "recall": 0.674,
+   "f1": 0.6177,
+   "tp": 122,
+   "fp": 92,
+   "fn": 59
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.6383,
+   "recall": 0.4018,
+   "f1": 0.4932,
+   "tp": 90,
+   "fp": 51,
+   "fn": 134
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.7179,
+   "recall": 0.3623,
+   "f1": 0.4816,
+   "tp": 196,
+   "fp": 77,
+   "fn": 345
+  },
+  "overall_f1": 0.6047,
+  "n_pred": 1256
+ },
+ "house_g1@0.4": {
+  "AOI_2_Vegas": {
+   "precision": 0.9043,
+   "recall": 0.7791,
+   "f1": 0.837,
+   "tp": 529,
+   "fp": 56,
+   "fn": 150
+  },
+  "AOI_3_Paris": {
+   "precision": 0.6595,
+   "recall": 0.674,
+   "f1": 0.6667,
+   "tp": 122,
+   "fp": 63,
+   "fn": 59
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.6983,
+   "recall": 0.3616,
+   "f1": 0.4765,
+   "tp": 81,
+   "fp": 35,
+   "fn": 143
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.7636,
+   "recall": 0.2329,
+   "f1": 0.3569,
+   "tp": 126,
+   "fp": 39,
+   "fn": 415
+  },
+  "overall_f1": 0.5843,
+  "n_pred": 1051
+ },
+ "house_g1@0.5": {
+  "AOI_2_Vegas": {
+   "precision": 0.9318,
+   "recall": 0.7644,
+   "f1": 0.8398,
+   "tp": 519,
+   "fp": 38,
+   "fn": 160
+  },
+  "AOI_3_Paris": {
+   "precision": 0.7152,
+   "recall": 0.6519,
+   "f1": 0.6821,
+   "tp": 118,
+   "fp": 47,
+   "fn": 63
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.75,
+   "recall": 0.3348,
+   "f1": 0.463,
+   "tp": 75,
+   "fp": 25,
+   "fn": 149
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.8,
+   "recall": 0.1479,
+   "f1": 0.2496,
+   "tp": 80,
+   "fp": 20,
+   "fn": 461
+  },
+  "overall_f1": 0.5586,
+  "n_pred": 922
+ },
+ "house_g1@0.6": {
+  "AOI_2_Vegas": {
+   "precision": 0.9602,
+   "recall": 0.7467,
+   "f1": 0.8401,
+   "tp": 507,
+   "fp": 21,
+   "fn": 172
+  },
+  "AOI_3_Paris": {
+   "precision": 0.7676,
+   "recall": 0.6022,
+   "f1": 0.6749,
+   "tp": 109,
+   "fp": 33,
+   "fn": 72
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.775,
+   "recall": 0.2768,
+   "f1": 0.4079,
+   "tp": 62,
+   "fp": 18,
+   "fn": 162
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.8302,
+   "recall": 0.0813,
+   "f1": 0.1481,
+   "tp": 44,
+   "fp": 9,
+   "fn": 497
+  },
+  "overall_f1": 0.5178,
+  "n_pred": 803
+ },
+ "house_g2@0.2": {
+  "AOI_2_Vegas": {
+   "precision": 0.6186,
+   "recall": 0.8218,
+   "f1": 0.7059,
+   "tp": 558,
+   "fp": 344,
+   "fn": 121
+  },
+  "AOI_3_Paris": {
+   "precision": 0.3333,
+   "recall": 0.6243,
+   "f1": 0.4346,
+   "tp": 113,
+   "fp": 226,
+   "fn": 68
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.3832,
+   "recall": 0.4688,
+   "f1": 0.4217,
+   "tp": 105,
+   "fp": 169,
+   "fn": 119
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.4358,
+   "recall": 0.5712,
+   "f1": 0.4944,
+   "tp": 309,
+   "fp": 400,
+   "fn": 232
+  },
+  "overall_f1": 0.5141,
+  "n_pred": 2230
+ },
+ "house_g2@0.3": {
+  "AOI_2_Vegas": {
+   "precision": 0.7528,
+   "recall": 0.8027,
+   "f1": 0.7769,
+   "tp": 545,
+   "fp": 179,
+   "fn": 134
+  },
+  "AOI_3_Paris": {
+   "precision": 0.4151,
+   "recall": 0.6077,
+   "f1": 0.4933,
+   "tp": 110,
+   "fp": 155,
+   "fn": 71
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.4694,
+   "recall": 0.4107,
+   "f1": 0.4381,
+   "tp": 92,
+   "fp": 104,
+   "fn": 132
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.5168,
+   "recall": 0.4824,
+   "f1": 0.499,
+   "tp": 261,
+   "fp": 244,
+   "fn": 280
+  },
+  "overall_f1": 0.5518,
+  "n_pred": 1690
+ },
+ "house_g2@0.4": {
+  "AOI_2_Vegas": {
+   "precision": 0.8394,
+   "recall": 0.785,
+   "f1": 0.8113,
+   "tp": 533,
+   "fp": 102,
+   "fn": 146
+  },
+  "AOI_3_Paris": {
+   "precision": 0.4884,
+   "recall": 0.5801,
+   "f1": 0.5303,
+   "tp": 105,
+   "fp": 110,
+   "fn": 76
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.5093,
+   "recall": 0.3661,
+   "f1": 0.426,
+   "tp": 82,
+   "fp": 79,
+   "fn": 142
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6017,
+   "recall": 0.3937,
+   "f1": 0.476,
+   "tp": 213,
+   "fp": 141,
+   "fn": 328
+  },
+  "overall_f1": 0.5609,
+  "n_pred": 1365
+ },
+ "house_g2@0.5": {
+  "AOI_2_Vegas": {
+   "precision": 0.8923,
+   "recall": 0.7688,
+   "f1": 0.8259,
+   "tp": 522,
+   "fp": 63,
+   "fn": 157
+  },
+  "AOI_3_Paris": {
+   "precision": 0.5657,
+   "recall": 0.547,
+   "f1": 0.5562,
+   "tp": 99,
+   "fp": 76,
+   "fn": 82
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.5484,
+   "recall": 0.3036,
+   "f1": 0.3908,
+   "tp": 68,
+   "fp": 56,
+   "fn": 156
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6386,
+   "recall": 0.2384,
+   "f1": 0.3472,
+   "tp": 129,
+   "fp": 73,
+   "fn": 412
+  },
+  "overall_f1": 0.53,
+  "n_pred": 1086
+ },
+ "house_g2@0.6": {
+  "AOI_2_Vegas": {
+   "precision": 0.9387,
+   "recall": 0.7437,
+   "f1": 0.8299,
+   "tp": 505,
+   "fp": 33,
+   "fn": 174
+  },
+  "AOI_3_Paris": {
+   "precision": 0.6429,
+   "recall": 0.4972,
+   "f1": 0.5607,
+   "tp": 90,
+   "fp": 50,
+   "fn": 91
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.6078,
+   "recall": 0.2768,
+   "f1": 0.3804,
+   "tp": 62,
+   "fp": 40,
+   "fn": 162
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6931,
+   "recall": 0.1294,
+   "f1": 0.2181,
+   "tp": 70,
+   "fp": 31,
+   "fn": 471
+  },
+  "overall_f1": 0.4973,
+  "n_pred": 881
+ },
+ "roof_g1@0.2": {
+  "AOI_2_Vegas": {
+   "precision": 0.6917,
+   "recall": 0.8262,
+   "f1": 0.753,
+   "tp": 561,
+   "fp": 250,
+   "fn": 118
+  },
+  "AOI_3_Paris": {
+   "precision": 0.41,
+   "recall": 0.6796,
+   "f1": 0.5114,
+   "tp": 123,
+   "fp": 177,
+   "fn": 58
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.3808,
+   "recall": 0.6562,
+   "f1": 0.482,
+   "tp": 147,
+   "fp": 239,
+   "fn": 77
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.4452,
+   "recall": 0.6303,
+   "f1": 0.5218,
+   "tp": 341,
+   "fp": 425,
+   "fn": 200
+  },
+  "overall_f1": 0.5671,
+  "n_pred": 2263
+ },
+ "roof_g1@0.3": {
+  "AOI_2_Vegas": {
+   "precision": 0.7831,
+   "recall": 0.8189,
+   "f1": 0.8006,
+   "tp": 556,
+   "fp": 154,
+   "fn": 123
+  },
+  "AOI_3_Paris": {
+   "precision": 0.5,
+   "recall": 0.674,
+   "f1": 0.5741,
+   "tp": 122,
+   "fp": 122,
+   "fn": 59
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.4403,
+   "recall": 0.625,
+   "f1": 0.5166,
+   "tp": 140,
+   "fp": 178,
+   "fn": 84
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.5098,
+   "recall": 0.5749,
+   "f1": 0.5404,
+   "tp": 311,
+   "fp": 299,
+   "fn": 230
+  },
+  "overall_f1": 0.6079,
+  "n_pred": 1882
+ },
+ "roof_g1@0.4": {
+  "AOI_2_Vegas": {
+   "precision": 0.8415,
+   "recall": 0.8056,
+   "f1": 0.8232,
+   "tp": 547,
+   "fp": 103,
+   "fn": 132
+  },
+  "AOI_3_Paris": {
+   "precision": 0.57,
+   "recall": 0.6519,
+   "f1": 0.6082,
+   "tp": 118,
+   "fp": 89,
+   "fn": 63
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.4943,
+   "recall": 0.5848,
+   "f1": 0.5358,
+   "tp": 131,
+   "fp": 134,
+   "fn": 93
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.5745,
+   "recall": 0.4991,
+   "f1": 0.5341,
+   "tp": 270,
+   "fp": 200,
+   "fn": 271
+  },
+  "overall_f1": 0.6253,
+  "n_pred": 1592
+ },
+ "roof_g1@0.5": {
+  "AOI_2_Vegas": {
+   "precision": 0.883,
+   "recall": 0.7894,
+   "f1": 0.8336,
+   "tp": 536,
+   "fp": 71,
+   "fn": 143
+  },
+  "AOI_3_Paris": {
+   "precision": 0.6264,
+   "recall": 0.6022,
+   "f1": 0.6141,
+   "tp": 109,
+   "fp": 65,
+   "fn": 72
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.5611,
+   "recall": 0.5536,
+   "f1": 0.5573,
+   "tp": 124,
+   "fp": 97,
+   "fn": 100
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.6555,
+   "recall": 0.3974,
+   "f1": 0.4948,
+   "tp": 215,
+   "fp": 113,
+   "fn": 326
+  },
+  "overall_f1": 0.625,
+  "n_pred": 1330
+ },
+ "roof_g1@0.6": {
+  "AOI_2_Vegas": {
+   "precision": 0.914,
+   "recall": 0.7673,
+   "f1": 0.8343,
+   "tp": 521,
+   "fp": 49,
+   "fn": 158
+  },
+  "AOI_3_Paris": {
+   "precision": 0.6929,
+   "recall": 0.5359,
+   "f1": 0.6044,
+   "tp": 97,
+   "fp": 43,
+   "fn": 84
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.6485,
+   "recall": 0.4777,
+   "f1": 0.5501,
+   "tp": 107,
+   "fp": 58,
+   "fn": 117
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.7163,
+   "recall": 0.2847,
+   "f1": 0.4074,
+   "tp": 154,
+   "fp": 61,
+   "fn": 387
+  },
+  "overall_f1": 0.5991,
+  "n_pred": 1090
+ },
+ "roof_g2@0.2": {
+  "AOI_2_Vegas": {
+   "precision": 0.3798,
+   "recall": 0.7865,
+   "f1": 0.5122,
+   "tp": 534,
+   "fp": 872,
+   "fn": 145
+  },
+  "AOI_3_Paris": {
+   "precision": 0.1985,
+   "recall": 0.5801,
+   "f1": 0.2958,
+   "tp": 105,
+   "fp": 424,
+   "fn": 76
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.2504,
+   "recall": 0.6473,
+   "f1": 0.3611,
+   "tp": 145,
+   "fp": 434,
+   "fn": 79
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.2915,
+   "recall": 0.6747,
+   "f1": 0.4071,
+   "tp": 365,
+   "fp": 887,
+   "fn": 176
+  },
+  "overall_f1": 0.3941,
+  "n_pred": 3779
+ },
+ "roof_g2@0.3": {
+  "AOI_2_Vegas": {
+   "precision": 0.4839,
+   "recall": 0.7541,
+   "f1": 0.5895,
+   "tp": 512,
+   "fp": 546,
+   "fn": 167
+  },
+  "AOI_3_Paris": {
+   "precision": 0.2718,
+   "recall": 0.5691,
+   "f1": 0.3679,
+   "tp": 103,
+   "fp": 276,
+   "fn": 78
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.305,
+   "recall": 0.625,
+   "f1": 0.41,
+   "tp": 140,
+   "fp": 319,
+   "fn": 84
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.3577,
+   "recall": 0.634,
+   "f1": 0.4573,
+   "tp": 343,
+   "fp": 616,
+   "fn": 198
+  },
+  "overall_f1": 0.4562,
+  "n_pred": 2858
+ },
+ "roof_g2@0.4": {
+  "AOI_2_Vegas": {
+   "precision": 0.5831,
+   "recall": 0.7437,
+   "f1": 0.6537,
+   "tp": 505,
+   "fp": 361,
+   "fn": 174
+  },
+  "AOI_3_Paris": {
+   "precision": 0.3345,
+   "recall": 0.5359,
+   "f1": 0.4119,
+   "tp": 97,
+   "fp": 193,
+   "fn": 84
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.3663,
+   "recall": 0.6116,
+   "f1": 0.4582,
+   "tp": 137,
+   "fp": 237,
+   "fn": 87
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.4193,
+   "recall": 0.5619,
+   "f1": 0.4803,
+   "tp": 304,
+   "fp": 421,
+   "fn": 237
+  },
+  "overall_f1": 0.501,
+  "n_pred": 2255
+ },
+ "roof_g2@0.5": {
+  "AOI_2_Vegas": {
+   "precision": 0.6617,
+   "recall": 0.7231,
+   "f1": 0.6911,
+   "tp": 491,
+   "fp": 251,
+   "fn": 188
+  },
+  "AOI_3_Paris": {
+   "precision": 0.4144,
+   "recall": 0.5083,
+   "f1": 0.4566,
+   "tp": 92,
+   "fp": 130,
+   "fn": 89
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.4147,
+   "recall": 0.5536,
+   "f1": 0.4742,
+   "tp": 124,
+   "fp": 175,
+   "fn": 100
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.4917,
+   "recall": 0.4917,
+   "f1": 0.4917,
+   "tp": 266,
+   "fp": 275,
+   "fn": 275
+  },
+  "overall_f1": 0.5284,
+  "n_pred": 1804
+ },
+ "roof_g2@0.6": {
+  "AOI_2_Vegas": {
+   "precision": 0.7299,
+   "recall": 0.6804,
+   "f1": 0.7043,
+   "tp": 462,
+   "fp": 171,
+   "fn": 217
+  },
+  "AOI_3_Paris": {
+   "precision": 0.497,
+   "recall": 0.453,
+   "f1": 0.474,
+   "tp": 82,
+   "fp": 83,
+   "fn": 99
+  },
+  "AOI_4_Shanghai": {
+   "precision": 0.479,
+   "recall": 0.5089,
+   "f1": 0.4935,
+   "tp": 114,
+   "fp": 124,
+   "fn": 110
+  },
+  "AOI_5_Khartoum": {
+   "precision": 0.5611,
+   "recall": 0.3734,
+   "f1": 0.4484,
+   "tp": 202,
+   "fp": 158,
+   "fn": 339
+  },
+  "overall_f1": 0.5301,
+  "n_pred": 1396
+ }
+}

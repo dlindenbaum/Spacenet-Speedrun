@@ -56,8 +56,8 @@ class Acc:
 
 
 class Overture:
-    def __init__(self, aoi):
-        t = pq.read_table(f"data/overture/{aoi}_all.parquet", columns=["wkt"]).to_pydict()
+    def __init__(self, aoi, path=None):
+        t = pq.read_table(path or f"data/overture/{aoi}_all.parquet", columns=["wkt"]).to_pydict()
         self.g = [wkt.loads(w) for w in t["wkt"]]
         self.tree = STRtree(self.g)
 

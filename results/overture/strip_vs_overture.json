@@ -1,0 +1,122 @@
+{
+ "AOI_2_Vegas": {
+  "val_tiles": {
+   "n": 386,
+   "model_vs_gt": {
+    "object_f1": 0.8921,
+    "pixel_f1": 0.9217
+   },
+   "overture_vs_gt": {
+    "object_f1": 0.8005,
+    "pixel_f1": 0.81
+   },
+   "model_vs_overture": {
+    "object_f1": 0.832,
+    "pixel_f1": 0.8227
+   },
+   "model_buildings_per_km2": 700.6,
+   "overture_buildings_per_km2": 668.2
+  },
+  "strip_windows": {
+   "n": 400,
+   "area_km2": 15.2,
+   "spacenet_chips_excluded": 5132,
+   "model_vs_overture": {
+    "object_f1": 0.7899,
+    "pixel_f1": 0.824
+   },
+   "model_buildings_per_km2": 567.9,
+   "overture_buildings_per_km2": 509.2
+  }
+ },
+ "AOI_3_Paris": {
+  "val_tiles": {
+   "n": 105,
+   "model_vs_gt": {
+    "object_f1": 0.8073,
+    "pixel_f1": 0.8609
+   },
+   "overture_vs_gt": {
+    "object_f1": 0.1916,
+    "pixel_f1": 0.535
+   },
+   "model_vs_overture": {
+    "object_f1": 0.181,
+    "pixel_f1": 0.5477
+   },
+   "model_buildings_per_km2": 295.0,
+   "overture_buildings_per_km2": 620.4
+  },
+  "strip_windows": {
+   "n": 400,
+   "area_km2": 15.2,
+   "spacenet_chips_excluded": 1529,
+   "model_vs_overture": {
+    "object_f1": 0.1763,
+    "pixel_f1": 0.6892
+   },
+   "model_buildings_per_km2": 275.9,
+   "overture_buildings_per_km2": 545.8
+  }
+ },
+ "AOI_4_Shanghai": {
+  "val_tiles": {
+   "n": 459,
+   "model_vs_gt": {
+    "object_f1": 0.7089,
+    "pixel_f1": 0.8853
+   },
+   "overture_vs_gt": {
+    "object_f1": 0.0975,
+    "pixel_f1": 0.5296
+   },
+   "model_vs_overture": {
+    "object_f1": 0.0934,
+    "pixel_f1": 0.529
+   },
+   "model_buildings_per_km2": 357.8,
+   "overture_buildings_per_km2": 295.3
+  },
+  "strip_windows": {
+   "n": 400,
+   "area_km2": 15.2,
+   "spacenet_chips_excluded": 6109,
+   "model_vs_overture": {
+    "object_f1": 0.0563,
+    "pixel_f1": 0.4963
+   },
+   "model_buildings_per_km2": 308.3,
+   "overture_buildings_per_km2": 218.5
+  }
+ },
+ "AOI_5_Khartoum": {
+  "val_tiles": {
+   "n": 87,
+   "model_vs_gt": {
+    "object_f1": 0.6107,
+    "pixel_f1": 0.8632
+   },
+   "overture_vs_gt": {
+    "object_f1": 0.0977,
+    "pixel_f1": 0.5421
+   },
+   "model_vs_overture": {
+    "object_f1": 0.0998,
+    "pixel_f1": 0.5668
+   },
+   "model_buildings_per_km2": 579.2,
+   "overture_buildings_per_km2": 1851.5
+  },
+  "strip_windows": {
+   "n": 400,
+   "area_km2": 15.2,
+   "spacenet_chips_excluded": 1348,
+   "model_vs_overture": {
+    "object_f1": 0.0492,
+    "pixel_f1": 0.5518
+   },
+   "model_buildings_per_km2": 927.9,
+   "overture_buildings_per_km2": 2005.4
+  }
+ }
+}

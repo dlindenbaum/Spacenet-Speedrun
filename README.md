@@ -49,6 +49,10 @@ model itself costs $2.26 of GPU time.
 5. **Supervised models need data from the target region.** Pooling SN4/SN6/SN8 into training costs 0.017 on SN2 and
    roughly doubles F1 on those datasets. But a model trained without SN2 scores only 0.325 on the SN2 cities, half of
    zero-shot SAM 3. Planet 4 m imagery (SN7) is out of reach for any 0.3 m model.
+6. **Open building data is a usable reference only where its conventions match.** Overture (Microsoft ML +
+   OpenStreetMap) matches SpaceNet's Vegas labels at F1 0.80. Against it, our model holds its accuracy on 15 km² of
+   unseen strip, with pixel agreement unchanged. In Paris, Shanghai and Khartoum, Overture outlines terraces,
+   compounds or footprints rather than SpaceNet-style roofs, so it cannot measure accuracy there.
 
 ![qualitative](results/qualitative.png)
 
@@ -346,6 +350,82 @@ Per-angle and per-region numbers are in `results/transfer/{sn2only,generalist_ge
 `results/transfer/sn2only_convnextb_sn6geo.json` and `results/supervised/nosn2_convnextb_20k.json`, produced by
 `jobs/transfer_eval.py`.
 
+### 9. Open building datasets (Overture Maps) and the full image strips
+
+Overture Maps' building layer (release 2026-11-18) merges OpenStreetMap, Microsoft ML Buildings, Google Open Buildings
+and others, and tags each footprint with its source. Two questions:
+1. How well does it match SpaceNet's labels?
+2. Can it serve as the reference for checking our model on the **full WorldView-3 strips** the SpaceNet chips were
+   cut from, i.e. ground no SpaceNet label covers?
+
+The query is DuckDB over Overture's public GeoParquet, filtered by bounding box. Scoring uses the same metric as
+everywhere else: each Overture polygon is projected into the tile's pixel grid and clipped like the SpaceNet labels
+(`scripts/overture_eval.py`).
+
+**Overture against SpaceNet's labels on our val tiles:**
+
+| City | Overture F1 (P / R) | Best shift ≤ 3 m | Main sources in the area |
+|---|---|---|---|
+| Vegas | **0.801** (0.85 / 0.76) | 0.801 (no shift) | OpenStreetMap 84 k, Microsoft ML 74 k |
+| Paris | 0.192 (0.15 / 0.28) | 0.290 | OpenStreetMap 76 k |
+| Shanghai | 0.098 (0.11 / 0.09) | 0.183 | China building dataset (Zenodo 8174931) 89 k |
+| Khartoum | 0.098 (0.07 / 0.19) | 0.134 | OpenStreetMap 385 k, Google 88 k, Microsoft 19 k |
+
+![SpaceNet labels vs Overture](results/overture/overlay_gt_vs_overture.jpg)
+
+* **Vegas: Overture is essentially another label set for the same buildings.** Microsoft and OpenStreetMap are both about
+  85 % precise against SpaceNet, below our model (0.892) and close to SAM 3 (0.810).
+* **Elsewhere the mismatch is labelling convention, not missing buildings** (see the overlay):
+  * **Paris:** outlines are shifted a few metres, because Overture traces footprints while the 2016 off-nadir image
+    shows rooftops.
+  * **Shanghai:** the dataset outlines whole terraces as one polygon; SpaceNet outlines each house.
+  * **Khartoum:** OSM mostly maps walled compounds, not the buildings inside them.
+  * Ten years of construction and demolition since the 2015–16 imagery add to all of this.
+* **Pixel-level F1 is fairer to a different convention.** It asks whether the same ground is marked as built. Overture
+  vs SpaceNet scores 0.81 / 0.54 / 0.53 / 0.54 by pixel.
+
+**The full strips.** The four strips are 15–60 km long, and the SpaceNet chips are pixel-identical crops of them
+(verified), so the model and preprocessing apply unchanged. `jobs/strip_eval.py`:
+* builds each city's mosaic from its strip files;
+* drops every 650 px window within ~100 m of any SpaceNet chip, train or official test;
+* samples 400 windows per city, 15 km² each, 61 km² in total;
+* runs the 0.755 ConvNeXt-B model with its original post-processing.
+
+The predictions are then scored against Overture (`scripts/strip_vs_overture.py`). The validation tiles serve as
+calibration, because there all three label sets exist.
+
+| City | Model vs SpaceNet labels, val (object / pixel F1) | Model vs Overture, val | **Model vs Overture, unseen strip windows** |
+|---|---|---|---|
+| Vegas | 0.892 / 0.922 | 0.832 / 0.823 | **0.790 / 0.824** |
+| Paris | 0.807 / 0.861 | 0.181 / 0.548 | 0.176 / 0.689 |
+| Shanghai | 0.709 / 0.885 | 0.093 / 0.529 | 0.056 / 0.496 |
+| Khartoum | 0.611 / 0.863 | 0.100 / 0.567 | 0.049 / 0.552 |
+
+* **Vegas, the one city where Overture is a valid reference: the model holds up across the strip.**
+  * Pixel agreement is identical (0.823 on val, 0.824 on the strips).
+  * Object agreement drops by 0.04 (0.832 → 0.790).
+  * Read against the calibration, the model's object F1 on unseen parts of the strip is probably around 0.85, against
+    0.892 on val. This is an inference, not a measurement.
+* **Other cities: no sign of degradation at pixel level** (Paris higher, Shanghai −0.03, Khartoum −0.02).
+  * Object-level agreement with Overture is not meaningful there because of the convention mismatch.
+* **Building density on the strips**, model vs Overture per km²:
+
+  | City | Model | Overture |
+  |---|---|---|
+  | Vegas | 568 | 509 |
+  | Paris | 276 | 546 |
+  | Shanghai | 308 | 219 |
+  | Khartoum | 928 | 2005 |
+
+  Paris's higher Overture count reflects its finer cadastral splitting, and Khartoum's reflects compound plots plus
+  machine-learned footprints.
+* **Caveat:** Overture's completeness also varies across a strip (OSM mapping effort, ML coverage and recency), so part
+  of any change in agreement comes from the reference rather than the model.
+* **Cost:** the strip inference is one A10G job, about 45 min (~$0.75). The Overture queries take seconds each, from a
+  public bucket.
+
+Results are in `results/overture/`. The strip predictions themselves are in the private bucket (`strip_eval/`).
+
 ## What it took to win in 2017 vs. now
 
 XD_XD's 2017 winning recipe had four parts:
@@ -377,6 +457,9 @@ scripts/prepare_xds.py     other SpaceNet building datasets → 0.3 m RGB sub-ti
 scripts/check_leakage.py   geographic train/test overlap audit (SN6, SN8)
 scripts/pp_search.py       post-processing search on saved val probabilities (2-fold CV)
 scripts/band_ablation.py   scores the multispectral runs, paired bootstrap CIs
+scripts/overture_eval.py   Overture Maps buildings vs SpaceNet labels on val (per source, best-shift search)
+scripts/strip_vs_overture.py  model vs Overture on full-strip windows, calibrated on val (object + pixel F1)
+jobs/strip_eval.py         HF Jobs (GPU): model inference on the full WorldView-3 strips, away from all SpaceNet chips
 scripts/session_costs.py   Claude + Hugging Face cost from the transcript and job records → results/costs.json
 scripts/export_trace.py    scrubbed session transcript → trace/
 jobs/sam_eval.py           HF Jobs (GPU): SAM 2.1 automatic / SigLIP2-filtered / box-prompted

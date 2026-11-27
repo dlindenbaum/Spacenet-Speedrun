@@ -445,8 +445,8 @@ session ran from 2026-11-26 00:47 to 2026-11-27 14:40 UTC.
 * **Prices are API list prices** (Opus 5.5: $4 in / $20 out per MTok, $0.20 cache read, $8 for 1-hour cache writes).
   The work ran through Claude Code, so actual billing depends on the plan; these numbers are what the same tokens cost
   on the API.
-* **Most of the cost is re-reading context, not writing.** The output (code, analysis, this README) is $7.58. Cache
-  reads of the growing conversation are $19.25 and cache writes $13.89: every step of a long agent session re-reads the
+* **Most of the cost is re-reading context, not writing.** The output (code, analysis, this README) is $7.75. Cache
+  reads of the growing conversation are $19.92 and cache writes $14.00: every step of a long agent session re-reads the
   history from cache.
 * **The harness agrees.** Claude Code's own running total was $35.87 at its last checkpoint, which came before the final
   write-up turns.

@@ -254,6 +254,7 @@ def main():
     ap.add_argument("--eval_only", action="store_true")
     ap.add_argument("--extra", default="", help="comma list of xds datasets whose train split is added (generalist)")
     ap.add_argument("--extra_frac", type=float, default=0.6, help="sampling share of extra datasets")
+    ap.add_argument("--pp", default="", help='fixed post-processing JSON, e.g. {"t_mask":0.3,...}; skips SN2 tune')
     ap.add_argument("--ensemble", default="", help="eval-only: comma list of ckpt_path=encoder")
     args = ap.parse_args()
     t_start = time.time()
@@ -386,23 +387,25 @@ def main():
                 log("infer", k + 1, "/", len(ids))
         return probs
 
-    tune_probs = infer(tune)
-    grid = [dict(t_mask=tm, t_seed=ts, min_seed=ms) for tm in (0.3, 0.4, 0.5) for ts in (0.6, 0.7, 0.8)
-            for ms in (30, 60, 100)]
-
     def run_pp(probs, kw):
         with ThreadPoolExecutor(12) as ex:
             polys = list(ex.map(lambda i: postprocess(probs[i], **kw), list(probs)))
         return dict(zip(probs, polys))
 
-    best = None
-    for kw in grid:
-        r = score(gt, run_pp(tune_probs, kw), list(tune_probs))
-        log("tune", kw, r["overall_f1"])
-        if best is None or r["overall_f1"] > best[1]["overall_f1"]:
-            best = (kw, r)
+    if args.pp:  # fixed thresholds: no SN2 labels used (e.g. a model trained without SN2)
+        best = (json.loads(args.pp), None)
+    else:
+        tune_probs = infer(tune)
+        grid = [dict(t_mask=tm, t_seed=ts, min_seed=ms) for tm in (0.3, 0.4, 0.5) for ts in (0.6, 0.7, 0.8)
+                for ms in (30, 60, 100)]
+        best = None
+        for kw in grid:
+            r = score(gt, run_pp(tune_probs, kw), list(tune_probs))
+            log("tune", kw, r["overall_f1"])
+            if best is None or r["overall_f1"] > best[1]["overall_f1"]:
+                best = (kw, r)
+        del tune_probs
     log("best pp", best)
-    del tune_probs
     val_probs = infer(val_ids)
     pred = run_pp(val_probs, best[0])
     res = score(gt, pred, val_ids)

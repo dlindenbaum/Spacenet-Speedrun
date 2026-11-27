@@ -426,6 +426,40 @@ calibration, because there all three label sets exist.
 
 Results are in `results/overture/`. The strip predictions themselves are in the private bucket (`strip_eval/`).
 
+### 10. Product: building footprints for the entire Vegas strip (cloud-native GeoParquet)
+
+The validated model was run over the **whole Vegas WorldView-3 strip**: about 14 × 16 km of 0.3 m imagery, read
+straight from SpaceNet's public COGs. The output is **157,339 buildings in one 30 MB GeoParquet 1.1 file**, published
+as a (private) Hugging Face dataset:
+[`Rootkit29/vegas-wv3-building-footprints`](https://huggingface.co/datasets/Rootkit29/vegas-wv3-building-footprints).
+
+![Vegas strip footprints](results/footprints/vegas_strip_preview.png)
+
+* **Seamless.** 1,300 px windows on an 1,100 px core grid. Each building is kept only by the window whose core
+  contains its centroid, and 417 near-duplicates at core boundaries are removed. No pair of footprints overlaps by more
+  than half.
+* **Schema.** `id`, `geometry` (EPSG:4326), a GeoParquet 1.1 `bbox` covering column, `area_m2` (UTM 11N),
+  `confidence`, `spacenet_split` (train / val / test_public / outside), `acquired`, `source_image` and `model`.
+* **Layout.** Rows are Hilbert-sorted into 8 row groups (zstd). Remote bounding-box queries need only range requests:
+  * DuckDB: 919 buildings in 1.8 s;
+  * GeoPandas `read_parquet(..., bbox=...)`: 1.1 s.
+* **QA** (`scripts/footprints_qa.py`, `results/footprints/aoi_2_vegas_qa.json`):
+
+  | Check | Object F1 | Pixel F1 |
+  |---|---|---|
+  | vs SpaceNet labels on the 386 held-out val chips | **0.897** | 0.912 |
+  | vs Overture inside SpaceNet chips | 0.829 | 0.841 |
+  | vs Overture outside SpaceNet chips (39,595 buildings) | **0.825** | 0.839 |
+
+  * Strip-wide tiling loses nothing against the per-chip result (0.892).
+  * Agreement with an independent reference is the same on ground SpaceNet never labelled.
+* **Time and cost.**
+  * Compute: one `a10g-large` job, 2,492 windows, **30 min wall clock (35 min billed), $0.87**. Including a 4-minute
+    test run, compute was **$0.97**.
+  * End to end, from request to published dataset: about 50 min and about **$4**, of which about $3 was the Claude
+    agent.
+* **Code:** `jobs/strip_footprints.py`. Change `--aoi` to run the other cities; their strips are 2–4× larger.
+
 ## What it took to win in 2017 vs. now
 
 XD_XD's 2017 winning recipe had four parts:
@@ -460,6 +494,8 @@ scripts/band_ablation.py   scores the multispectral runs, paired bootstrap CIs
 scripts/overture_eval.py   Overture Maps buildings vs SpaceNet labels on val (per source, best-shift search)
 scripts/strip_vs_overture.py  model vs Overture on full-strip windows, calibrated on val (object + pixel F1)
 jobs/strip_eval.py         HF Jobs (GPU): model inference on the full WorldView-3 strips, away from all SpaceNet chips
+jobs/strip_footprints.py   HF Jobs (GPU): seamless footprints for a whole strip -> GeoParquet 1.1 (Hilbert-sorted, bbox covering)
+scripts/footprints_qa.py   QA of a strip footprint product (vs SpaceNet val labels, vs Overture, duplicates)
 scripts/session_costs.py   Claude + Hugging Face cost from the transcript and job records → results/costs.json
 scripts/export_trace.py    scrubbed session transcript → trace/
 jobs/sam_eval.py           HF Jobs (GPU): SAM 2.1 automatic / SigLIP2-filtered / box-prompted

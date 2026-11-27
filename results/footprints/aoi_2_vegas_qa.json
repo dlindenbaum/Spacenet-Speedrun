@@ -1,0 +1,27 @@
+{
+ "file": "aoi_2_vegas_buildings.parquet",
+ "buildings": 157339,
+ "by_split": {
+  "train": 79710,
+  "outside": 39595,
+  "test_public": 29049,
+  "val": 8985
+ },
+ "val_chips_vs_spacenet_gt": {
+  "n_chips": 386,
+  "object_f1": 0.8966,
+  "pixel_f1": 0.9118
+ },
+ "vs_overture": {
+  "spacenet_chips": {
+   "object_f1": 0.8291,
+   "pixel_f1": 0.8411
+  },
+  "outside": {
+   "object_f1": 0.8251,
+   "pixel_f1": 0.8391
+  }
+ },
+ "overlapping_pairs_gt_1m2": 71,
+ "overlapping_pairs_gt_50pct": 0
+}

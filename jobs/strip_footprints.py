@@ -104,6 +104,27 @@ def predict(model, img, mean, std):
     return (acc[0] / 4)[:, :BIG, :BIG].half().cpu().numpy()
 
 
+def dedupe(gdf, utm):
+    """Drop near-duplicates: a building whose centroid sits near a core boundary can be claimed by two windows that
+    segment it slightly differently. For every pair overlapping by > 50 % of the smaller polygon, keep the one
+    with higher confidence."""
+    u = gdf.geometry.to_crs(utm).values
+    import shapely
+
+    a, b = shapely.STRtree(u).query(u, predicate="intersects")
+    m = a < b
+    a, b = a[m], b[m]
+    inter = shapely.area(shapely.intersection(u[a], u[b]))
+    dup = inter > 0.5 * np.minimum(shapely.area(u[a]), shapely.area(u[b]))
+    conf = gdf["confidence"].values
+    drop = set()
+    for i, j in zip(a[dup], b[dup]):
+        if i in drop or j in drop:
+            continue
+        drop.add(j if conf[i] >= conf[j] else i)
+    return gdf.drop(index=gdf.index[sorted(drop)]).reset_index(drop=True), len(drop)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="/sn2")
@@ -225,6 +246,8 @@ def main():
     gdf = gpd.GeoDataFrame({"confidence": np.array([feats[i][1] for i in keep], np.float32)},
                            geometry=[geoms[i] for i in keep], crs="EPSG:4326")
     utm = pyproj.CRS.from_user_input(gdf.estimate_utm_crs())
+    gdf, n_dup = dedupe(gdf, utm)
+    log("removed", n_dup, "near-duplicate polygons at window-core boundaries")
     gdf["area_m2"] = gdf.to_crs(utm).area.astype(np.float32).round(1)
     tree = STRtree([box(*b) for b, _ in chips])
     cent = gdf.geometry.centroid
@@ -244,8 +267,8 @@ def main():
     gdf.to_parquet(f, compression="zstd", write_covering_bbox=True, schema_version="1.1.0", row_group_size=20000)
     t_write = time.time() - t
     wall = time.time() - t_start
-    stats = {"aoi": a.aoi, "buildings": len(gdf), "windows": n_windows, "empty_windows_skipped": n_skipped,
-             "mosaic_px": [W, H], "strip_area_km2_with_imagery": None,
+    stats = {"aoi": a.aoi, "buildings": len(gdf), "duplicates_removed": n_dup, "windows": n_windows, "empty_windows_skipped": n_skipped,
+             "mosaic_px": [W, H],
              "by_split": gdf["spacenet_split"].value_counts().to_dict(),
              "time_s": {"setup": round(t_setup), "inference_and_postprocess": round(t_infer),
                         "read_io_sum": round(t_read), "gpu_sum": round(t_gpu), "geoparquet": round(t_write),

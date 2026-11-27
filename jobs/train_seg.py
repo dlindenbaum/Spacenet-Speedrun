@@ -107,6 +107,13 @@ MEAN = np.array([0.485, 0.456, 0.406], np.float32)
 STD = np.array([0.229, 0.224, 0.225], np.float32)
 
 
+def set_input_channels(n):
+    """Inputs beyond RGB (multispectral bands) get a generic normalisation; RGB keeps ImageNet's."""
+    global MEAN, STD
+    MEAN = np.concatenate([MEAN[:3], np.full(n - 3, 0.45, np.float32)])
+    STD = np.concatenate([STD[:3], np.full(n - 3, 0.225, np.float32)])
+
+
 # ------------------------------------------------------------------ model / loss
 class DinoUNet(torch.nn.Module):
     """DINOv3 ViT encoder (stride 16) + simple feature pyramid + light conv stem for fine detail,
@@ -160,8 +167,29 @@ class DinoUNet(torch.nn.Module):
         return self.d1(torch.cat([up(y, x), x], 1))
 
 
-def build_model(encoder, arch="Unet"):
+def widen_input(model, n):
+    """Replace the first 3-channel conv with an n-channel one: RGB filters keep their pretrained weights,
+    extra channels start at zero, so training starts from the RGB model and must learn to use the new bands."""
+    for name, mod in model.named_modules():
+        if isinstance(mod, torch.nn.Conv2d) and mod.in_channels == 3:
+            new = torch.nn.Conv2d(n, mod.out_channels, mod.kernel_size, mod.stride, mod.padding, mod.dilation,
+                                  mod.groups, mod.bias is not None)
+            with torch.no_grad():
+                new.weight.zero_()
+                new.weight[:, :3] = mod.weight
+                if mod.bias is not None:
+                    new.bias.copy_(mod.bias)
+            parent = model.get_submodule(name.rsplit(".", 1)[0]) if "." in name else model
+            setattr(parent, name.rsplit(".", 1)[-1], new)
+            return model
+    raise RuntimeError("no 3-channel input conv found")
+
+
+def build_model(encoder, arch="Unet", in_ch=3):
     import segmentation_models_pytorch as smp
+
+    if in_ch != 3:
+        return widen_input(build_model(encoder, arch), in_ch)
 
     if encoder.startswith("dinov3"):
         return DinoUNet({"dinov3": "vit_large_patch16_dinov3.sat493m",
@@ -188,7 +216,7 @@ def predict(model, img, tta=True):
         return (sum(predict(m, img, tta).astype(np.float32) for m in model) / len(model)).astype(np.float16)
     im = cv2.resize(img, (BIG, BIG), interpolation=cv2.INTER_LINEAR).astype(np.float32) / 255.0
     im = (im - MEAN) / STD
-    x = np.zeros((PAD, PAD, 3), np.float32)
+    x = np.zeros((PAD, PAD, im.shape[2]), np.float32)
     x[:BIG, :BIG] = im
     x = torch.from_numpy(x.transpose(2, 0, 1)).cuda()[None]
     xs = [x, x.flip(-1), x.flip(-2), x.transpose(-1, -2)] if tta else [x]
@@ -255,6 +283,9 @@ def main():
     ap.add_argument("--extra", default="", help="comma list of xds datasets whose train split is added (generalist)")
     ap.add_argument("--extra_frac", type=float, default=0.6, help="sampling share of extra datasets")
     ap.add_argument("--pp", default="", help='fixed post-processing JSON, e.g. {"t_mask":0.3,...}; skips SN2 tune')
+    ap.add_argument("--bands", default="", help="multispectral input: comma list of PS-MS band indices, RGB first "
+                    "(WV-3: 0 coastal 1 blue 2 green 3 yellow 4 red 5 red-edge 6 NIR1 7 NIR2), e.g. 4,2,1,6")
+    ap.add_argument("--ms_dir", default="/out/shards_ms", help="8-band uint8 shards from jobs/prep_ms.py")
     ap.add_argument("--ensemble", default="", help="eval-only: comma list of ckpt_path=encoder")
     args = ap.parse_args()
     t_start = time.time()
@@ -275,24 +306,31 @@ def main():
 
     # read the per-AOI uint8 shards (a few large sequential reads; fast on the mounted dataset)
     shard, where = {}, {}
+    bands = [int(b) for b in args.bands.split(",")] if args.bands else None
+    sdir = Path(args.ms_dir) if bands else root / "shards"
+    in_ch = len(bands) if bands else 3
+    if bands:
+        assert bands[:3] == [4, 2, 1] or in_ch < 3, "put RGB (4,2,1) first so pretrained filters line up"
+        set_input_channels(in_ch)
+        log("bands", bands, "mean", MEAN.tolist())
     for a in AOIS:
         t = time.time()
-        local = Path("/tmp") / f"{a}.npy"
+        local = Path("/tmp") / f"{a}{'_ms' if bands else ''}.npy"
         if not local.exists():
-            os.system(f"cp {root / 'shards' / f'{a}.npy'} {local}")
+            os.system(f"cp {sdir / f'{a}.npy'} {local}")
         shard[a] = np.load(local, mmap_mode="r")
-        for k, i in enumerate(json.loads((root / "shards" / f"{a}.json").read_text())):
+        for k, i in enumerate(json.loads((sdir / f"{a}.json").read_text())):
             where[i] = (a, k)
         log("shard", a, shard[a].shape, f"{time.time() - t:.0f}s")
 
     def load_img(i):
         a, k = where[i]
-        return np.ascontiguousarray(shard[a][k])
+        return np.ascontiguousarray(shard[a][k][..., bands] if bands else shard[a][k])
 
     out_dir = Path(args.out) / args.run
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    model = build_model(args.encoder, args.arch).cuda().to(memory_format=torch.channels_last)
+    model = build_model(args.encoder, args.arch, in_ch).cuda().to(memory_format=torch.channels_last)
     if args.init_from:
         model.load_state_dict(torch.load(args.init_from, map_location="cuda"))
         log("loaded", args.init_from)

@@ -1,0 +1,695 @@
+{
+ "session_span_utc": [
+  "2026-11-26T00:47:23.137Z",
+  "2026-11-27T14:41:50.083Z"
+ ],
+ "claude": {
+  "per_model": {
+   "claude-opus-5-5": {
+    "requests": 489,
+    "input": 1050,
+    "output": 387334,
+    "cache_read": 99593926,
+    "cache_write_5m": 0,
+    "cache_write_1h": 1750555,
+    "usd": 41.67,
+    "usd_breakdown": {
+     "input": 0.0,
+     "output": 7.75,
+     "cache_read": 19.92,
+     "cache_write": 14.0
+    }
+   },
+   "claude-haiku-5-5": {
+    "requests": 5,
+    "input": 10,
+    "output": 4023,
+    "cache_read": 36288,
+    "cache_write_5m": 45353,
+    "cache_write_1h": 0,
+    "usd": 0.01,
+    "usd_breakdown": {
+     "input": 0.0,
+     "output": 0.0,
+     "cache_read": 0.0,
+     "cache_write": 0.01
+    }
+   }
+  },
+  "total_usd": 41.68,
+  "harness_reported": {
+   "total_usd": 35.87,
+   "api_time_h": 1.03,
+   "tool_time_h": 3.07,
+   "lines_added": 2327
+  },
+  "prices_per_mtok": {
+   "claude-opus-5-5": {
+    "inp": 4.0,
+    "out": 20.0,
+    "read": 0.2,
+    "w5m": 5.0,
+    "w1h": 8.0
+   },
+   "claude-haiku-5-5": {
+    "inp": 0.1,
+    "out": 0.5,
+    "read": 0.01,
+    "w5m": 0.125,
+    "w1h": 0.2
+   }
+  },
+  "note": "API list-price equivalent from per-request token usage; a subscription bills differently"
+ },
+ "huggingface": {
+  "jobs_total_usd": 72.14,
+  "inference_providers_usd": 0.7,
+  "total_usd": 72.84,
+  "n_jobs": 56,
+  "by_group": {
+   "XD_XD 2017 reproduction": {
+    "jobs": 23,
+    "running_min": 1151.4,
+    "usd": 34.78
+   },
+   "Generalist training": {
+    "jobs": 3,
+    "running_min": 205.5,
+    "usd": 8.57
+   },
+   "Multispectral ablation": {
+    "jobs": 7,
+    "running_min": 186.6,
+    "usd": 7.6
+   },
+   "Supervised SN2 models": {
+    "jobs": 4,
+    "running_min": 150.2,
+    "usd": 6.26
+   },
+   "DINOv3": {
+    "jobs": 1,
+    "running_min": 129.5,
+    "usd": 5.4
+   },
+   "Transfer / generalisation evals": {
+    "jobs": 5,
+    "running_min": 94.2,
+    "usd": 3.78
+   },
+   "No-SN2 training": {
+    "jobs": 1,
+    "running_min": 78.3,
+    "usd": 3.26
+   },
+   "SAM 2.1": {
+    "jobs": 4,
+    "running_min": 33.1,
+    "usd": 1.38
+   },
+   "SAM 3": {
+    "jobs": 2,
+    "running_min": 26.7,
+    "usd": 1.11
+   },
+   "Other (smoke tests, checks)": {
+    "jobs": 6,
+    "running_min": 0.5,
+    "usd": 0.0
+   }
+  },
+  "by_flavor": {
+   "a100-large": {
+    "jobs": 25,
+    "running_min": 1211.8,
+    "usd": 50.5
+   },
+   "a10g-large": {
+    "jobs": 13,
+    "running_min": 625.0,
+    "usd": 15.62
+   },
+   "cpu-performance": {
+    "jobs": 2,
+    "running_min": 183.9,
+    "usd": 5.82
+   },
+   "a10g-small": {
+    "jobs": 2,
+    "running_min": 11.9,
+    "usd": 0.2
+   },
+   "cpu-basic": {
+    "jobs": 8,
+    "running_min": 15.9,
+    "usd": 0.0
+   },
+   "cpu-upgrade": {
+    "jobs": 3,
+    "running_min": 7.5,
+    "usd": 0.0
+   },
+   "l40sx1": {
+    "jobs": 3,
+    "running_min": 0.0,
+    "usd": 0.0
+   }
+  },
+  "price_per_min": {
+   "cpu-basic": 0.000167,
+   "cpu-upgrade": 0.0005,
+   "cpu-performance": 0.031667,
+   "cpu-xl": 0.016667,
+   "t4-small": 0.006667,
+   "t4-medium": 0.01,
+   "a10g-small": 0.016667,
+   "a10g-large": 0.025,
+   "a10g-largex2": 0.05,
+   "a10g-largex4": 0.083334,
+   "a100-large": 0.041667,
+   "a100x4": 0.166667,
+   "a100x8": 0.333333,
+   "h200": 0.083333,
+   "h200x2": 0.166667,
+   "h200x4": 0.333333,
+   "h200x8": 0.666667,
+   "rtx-pro-6000": 0.045833,
+   "rtx-pro-6000x2": 0.091667,
+   "rtx-pro-6000x4": 0.183333,
+   "rtx-pro-6000x8": 0.366667,
+   "l4x1": 0.013333,
+   "l4x4": 0.063333,
+   "l40sx1": 0.03,
+   "l40sx4": 0.138333,
+   "l40sx8": 0.391666
+  },
+  "jobs": [
+   {
+    "id": "6b078606b6a90bbe997ed7f8",
+    "name": "python-3-12-slim-3977c53c",
+    "flavor": "cpu-basic",
+    "created": "2026-11-26T01:06",
+    "stage": "ERROR",
+    "running_min": 0.1,
+    "usd": 0.0
+   },
+   {
+    "id": "6b078654d91f621b930962f3",
+    "name": "sam-zeroshot",
+    "flavor": "a100-large",
+    "created": "2026-11-26T01:07",
+    "stage": "ERROR",
+    "running_min": 1.6,
+    "usd": 0.07
+   },
+   {
+    "id": "6b078642d91f621b930962b7",
+    "name": "train_seg-f82f498e",
+    "flavor": "a100-large",
+    "created": "2026-11-26T01:07",
+    "stage": "CANCELED",
+    "running_min": 26.6,
+    "usd": 1.11
+   },
+   {
+    "id": "6b0788cfd91f621b93096933",
+    "name": "sam-zeroshot",
+    "flavor": "a100-large",
+    "created": "2026-11-26T01:18",
+    "stage": "CANCELED",
+    "running_min": 15.8,
+    "usd": 0.66
+   },
+   {
+    "id": "6b078ca2d91f621b9309703a",
+    "name": "sam-zeroshot",
+    "flavor": "a100-large",
+    "created": "2026-11-26T01:34",
+    "stage": "COMPLETED",
+    "running_min": 13.5,
+    "usd": 0.56
+   },
+   {
+    "id": "6b078c9bb6a90bbe997ee507",
+    "name": "sn2-effv2m-unet",
+    "flavor": "a100-large",
+    "created": "2026-11-26T01:34",
+    "stage": "COMPLETED",
+    "running_min": 57.5,
+    "usd": 2.4
+   },
+   {
+    "id": "6b078e26b6a90bbe997ee7d3",
+    "name": "sam-vlmbox-g2",
+    "flavor": "a100-large",
+    "created": "2026-11-26T01:40",
+    "stage": "COMPLETED",
+    "running_min": 2.2,
+    "usd": 0.09
+   },
+   {
+    "id": "6b078dfdb6a90bbe997ee749",
+    "name": "sn2-convnextb-unet",
+    "flavor": "a100-large",
+    "created": "2026-11-26T01:40",
+    "stage": "COMPLETED",
+    "running_min": 54.3,
+    "usd": 2.26
+   },
+   {
+    "id": "6b079acfd91f621b9309893e",
+    "name": "sn2-ensemble",
+    "flavor": "a100-large",
+    "created": "2026-11-26T02:34",
+    "stage": "COMPLETED",
+    "running_min": 11.8,
+    "usd": 0.49
+   },
+   {
+    "id": "6b07a2e5b6a90bbe997f0a28",
+    "name": "sn2-generalist-convnext",
+    "flavor": "a100-large",
+    "created": "2026-11-26T03:09",
+    "stage": "CANCELED",
+    "running_min": 39.8,
+    "usd": 1.66
+   },
+   {
+    "id": "6b07a2e2d91f621b9309990b",
+    "name": "xfer-sn2-convnext",
+    "flavor": "a100-large",
+    "created": "2026-11-26T03:09",
+    "stage": "COMPLETED",
+    "running_min": 31.7,
+    "usd": 1.32
+   },
+   {
+    "id": "6b07ac3fb6a90bbe997f1e84",
+    "name": "sn2-generalist-convnext-nosn1",
+    "flavor": "a100-large",
+    "created": "2026-11-26T03:49",
+    "stage": "COMPLETED",
+    "running_min": 82.3,
+    "usd": 3.43
+   },
+   {
+    "id": "6b07bf9fd91f621b9309d268",
+    "name": "xfer-generalist",
+    "flavor": "a100-large",
+    "created": "2026-11-26T05:11",
+    "stage": "COMPLETED",
+    "running_min": 29.1,
+    "usd": 1.21
+   },
+   {
+    "id": "6b0840e7b6a90bbe998091e5",
+    "name": "sn2-generalist-geo",
+    "flavor": "a100-large",
+    "created": "2026-11-26T14:23",
+    "stage": "COMPLETED",
+    "running_min": 83.4,
+    "usd": 3.48
+   },
+   {
+    "id": "6b08412dd91f621b930b3f64",
+    "name": "sn2-dinov3sat",
+    "flavor": "a100-large",
+    "created": "2026-11-26T14:24",
+    "stage": "COMPLETED",
+    "running_min": 129.5,
+    "usd": 5.4
+   },
+   {
+    "id": "6b08426eb6a90bbe998096d6",
+    "name": "sam3-eval",
+    "flavor": "a100-large",
+    "created": "2026-11-26T14:30",
+    "stage": "COMPLETED",
+    "running_min": 6.5,
+    "usd": 0.27
+   },
+   {
+    "id": "6b085ce2b6a90bbe9980f77c",
+    "name": "xfer-generalist-geo",
+    "flavor": "a100-large",
+    "created": "2026-11-26T16:22",
+    "stage": "COMPLETED",
+    "running_min": 27.9,
+    "usd": 1.16
+   },
+   {
+    "id": "6b085df3b6a90bbe9980fbfd",
+    "name": "sam3-val",
+    "flavor": "a100-large",
+    "created": "2026-11-26T16:27",
+    "stage": "COMPLETED",
+    "running_min": 20.2,
+    "usd": 0.84
+   },
+   {
+    "id": "6b085ebfb6a90bbe9980fe8f",
+    "name": "python-3-10-7fba0bc2",
+    "flavor": "cpu-basic",
+    "created": "2026-11-26T16:30",
+    "stage": "COMPLETED",
+    "running_min": 0.0,
+    "usd": 0.0
+   },
+   {
+    "id": "6b085f79d91f621b930bb1b1",
+    "name": "xdxd-osm2017",
+    "flavor": "cpu-upgrade",
+    "created": "2026-11-26T16:34",
+    "stage": "CANCELED",
+    "running_min": 7.1,
+    "usd": 0.0
+   },
+   {
+    "id": "6b08612cd91f621b930bb80a",
+    "name": "osm-probe",
+    "flavor": "cpu-basic",
+    "created": "2026-11-26T16:41",
+    "stage": "CANCELED",
+    "running_min": 13.2,
+    "usd": 0.0
+   },
+   {
+    "id": "6b08616bb6a90bbe998107fd",
+    "name": "pytorch-2-5-1-cuda12-4-cudnn9-runtime-a996158b",
+    "flavor": "cpu-upgrade",
+    "created": "2026-11-26T16:42",
+    "stage": "ERROR",
+    "running_min": 0.4,
+    "usd": 0.0
+   },
+   {
+    "id": "6b086161b6a90bbe998107cd",
+    "name": "pytorch-2-5-1-cuda12-4-cudnn9-runtime-a996158b",
+    "flavor": "cpu-upgrade",
+    "created": "2026-11-26T16:42",
+    "stage": "CANCELED",
+    "running_min": 0.0,
+    "usd": 0.0
+   },
+   {
+    "id": "6b086423b6a90bbe9981123b",
+    "name": "xfer-sn2only-sn6geo",
+    "flavor": "l40sx1",
+    "created": "2026-11-26T16:53",
+    "stage": "CANCELED",
+    "running_min": 0.0,
+    "usd": 0.0
+   },
+   {
+    "id": "6b086449d91f621b930bc4c2",
+    "name": "python-3-10-53091e15",
+    "flavor": "cpu-basic",
+    "created": "2026-11-26T16:54",
+    "stage": "COMPLETED",
+    "running_min": 0.0,
+    "usd": 0.0
+   },
+   {
+    "id": "6b086659b6a90bbe998118a7",
+    "name": "xdxd-osm-planet2017",
+    "flavor": "cpu-performance",
+    "created": "2026-11-26T17:03",
+    "stage": "COMPLETED",
+    "running_min": 176.9,
+    "usd": 5.6
+   },
+   {
+    "id": "6b08688c54072e8b7166b002",
+    "name": "xdxd-AOI_5_Khartoum",
+    "flavor": "l40sx1",
+    "created": "2026-11-26T17:12",
+    "stage": "CANCELED",
+    "running_min": 0.0,
+    "usd": 0.0
+   },
+   {
+    "id": "6b08688b54072e8b7166affc",
+    "name": "xdxd-AOI_3_Paris",
+    "flavor": "l40sx1",
+    "created": "2026-11-26T17:12",
+    "stage": "CANCELED",
+    "running_min": 0.0,
+    "usd": 0.0
+   },
+   {
+    "id": "6b08688b6c5d61fff1861c3f",
+    "name": "xdxd-AOI_4_Shanghai",
+    "flavor": "a100-large",
+    "created": "2026-11-26T17:12",
+    "stage": "ERROR",
+    "running_min": 40.4,
+    "usd": 1.68
+   },
+   {
+    "id": "6b08688a6c5d61fff1861c3d",
+    "name": "xdxd-AOI_2_Vegas",
+    "flavor": "a100-large",
+    "created": "2026-11-26T17:12",
+    "stage": "ERROR",
+    "running_min": 39.0,
+    "usd": 1.63
+   },
+   {
+    "id": "6b086bc254072e8b7166bae4",
+    "name": "xdxd-AOI_5_Khartoum",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T17:26",
+    "stage": "ERROR",
+    "running_min": 16.2,
+    "usd": 0.4
+   },
+   {
+    "id": "6b086bc154072e8b7166bae1",
+    "name": "xdxd-AOI_3_Paris",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T17:26",
+    "stage": "ERROR",
+    "running_min": 17.5,
+    "usd": 0.44
+   },
+   {
+    "id": "6b0876db54072e8b7166eb6d",
+    "name": "xfer-sn2only-sn6geo",
+    "flavor": "a10g-small",
+    "created": "2026-11-26T18:13",
+    "stage": "COMPLETED",
+    "running_min": 5.5,
+    "usd": 0.09
+   },
+   {
+    "id": "6b08883254072e8b71673e66",
+    "name": "xdxd-AOI_5_Khartoum",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T19:27",
+    "stage": "CANCELED",
+    "running_min": 19.2,
+    "usd": 0.48
+   },
+   {
+    "id": "6b08883254072e8b71673e63",
+    "name": "xdxd-AOI_4_Shanghai",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T19:27",
+    "stage": "CANCELED",
+    "running_min": 20.1,
+    "usd": 0.5
+   },
+   {
+    "id": "6b0888316c5d61fff186a41d",
+    "name": "xdxd-AOI_3_Paris",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T19:27",
+    "stage": "ERROR",
+    "running_min": 20.8,
+    "usd": 0.52
+   },
+   {
+    "id": "6b0888306c5d61fff186a419",
+    "name": "xdxd-AOI_2_Vegas",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T19:27",
+    "stage": "CANCELED",
+    "running_min": 16.9,
+    "usd": 0.42
+   },
+   {
+    "id": "6b088e2a54072e8b71675d10",
+    "name": "xdxd-AOI_3_Paris",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T19:53",
+    "stage": "ERROR",
+    "running_min": 19.9,
+    "usd": 0.5
+   },
+   {
+    "id": "6b0891cb6c5d61fff186d174",
+    "name": "cudatest",
+    "flavor": "a10g-small",
+    "created": "2026-11-26T20:08",
+    "stage": "COMPLETED",
+    "running_min": 6.4,
+    "usd": 0.11
+   },
+   {
+    "id": "6b08937c54072e8b7167762e",
+    "name": "xdxd-AOI_5_Khartoum",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T20:15",
+    "stage": "CANCELED",
+    "running_min": 28.1,
+    "usd": 0.7
+   },
+   {
+    "id": "6b08937b54072e8b7167762a",
+    "name": "xdxd-AOI_4_Shanghai",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T20:15",
+    "stage": "ERROR",
+    "running_min": 20.1,
+    "usd": 0.5
+   },
+   {
+    "id": "6b08937b54072e8b71677628",
+    "name": "xdxd-AOI_3_Paris",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T20:15",
+    "stage": "CANCELED",
+    "running_min": 28.2,
+    "usd": 0.71
+   },
+   {
+    "id": "6b08937a6c5d61fff186d8e6",
+    "name": "xdxd-AOI_2_Vegas",
+    "flavor": "a10g-large",
+    "created": "2026-11-26T20:15",
+    "stage": "ERROR",
+    "running_min": 17.6,
+    "usd": 0.44
+   },
+   {
+    "id": "6b08e4a554072e8b7168b5a4",
+    "name": "xdxd-AOI_5_Khartoum",
+    "flavor": "a10g-large",
+    "created": "2026-11-27T02:02",
+    "stage": "COMPLETED",
+    "running_min": 141.7,
+    "usd": 3.54
+   },
+   {
+    "id": "6b08e4a454072e8b7168b5a0",
+    "name": "xdxd-AOI_3_Paris",
+    "flavor": "a10g-large",
+    "created": "2026-11-27T02:02",
+    "stage": "COMPLETED",
+    "running_min": 258.7,
+    "usd": 6.47
+   },
+   {
+    "id": "6b08e4a46c5d61fff1880da2",
+    "name": "nosn2",
+    "flavor": "a100-large",
+    "created": "2026-11-27T02:02",
+    "stage": "COMPLETED",
+    "running_min": 78.3,
+    "usd": 3.26
+   },
+   {
+    "id": "6b08e4d954072e8b7168b64b",
+    "name": "xdxd-AOI_4_Shanghai",
+    "flavor": "a100-large",
+    "created": "2026-11-27T02:03",
+    "stage": "CANCELED",
+    "running_min": 121.7,
+    "usd": 5.07
+   },
+   {
+    "id": "6b08e4d96c5d61fff1880e44",
+    "name": "xdxd-AOI_2_Vegas",
+    "flavor": "a100-large",
+    "created": "2026-11-27T02:03",
+    "stage": "CANCELED",
+    "running_min": 121.7,
+    "usd": 5.07
+   },
+   {
+    "id": "6b0982b454072e8b7169e31b",
+    "name": "python-3-11-slim-c42a9348",
+    "flavor": "cpu-basic",
+    "created": "2026-11-27T13:16",
+    "stage": "COMPLETED",
+    "running_min": 0.0,
+    "usd": 0.0
+   },
+   {
+    "id": "6b0983196c5d61fff1892328",
+    "name": "prep-ms",
+    "flavor": "cpu-performance",
+    "created": "2026-11-27T13:18",
+    "stage": "COMPLETED",
+    "running_min": 7.0,
+    "usd": 0.22
+   },
+   {
+    "id": "6b0984d26c5d61fff189250d",
+    "name": "vcheck-3e43d135",
+    "flavor": "cpu-basic",
+    "created": "2026-11-27T13:25",
+    "stage": "COMPLETED",
+    "running_min": 0.8,
+    "usd": 0.0
+   },
+   {
+    "id": "6b0984c06c5d61fff18924fe",
+    "name": "ms8",
+    "flavor": "a100-large",
+    "created": "2026-11-27T13:25",
+    "stage": "COMPLETED",
+    "running_min": 61.7,
+    "usd": 2.57
+   },
+   {
+    "id": "6b0984be54072e8b7169e570",
+    "name": "msrgbn",
+    "flavor": "a100-large",
+    "created": "2026-11-27T13:25",
+    "stage": "COMPLETED",
+    "running_min": 58.5,
+    "usd": 2.44
+   },
+   {
+    "id": "6b0984bc54072e8b7169e567",
+    "name": "msrgb",
+    "flavor": "a100-large",
+    "created": "2026-11-27T13:25",
+    "stage": "COMPLETED",
+    "running_min": 56.8,
+    "usd": 2.37
+   },
+   {
+    "id": "6b0985136c5d61fff189254d",
+    "name": "vscan-cde30636",
+    "flavor": "cpu-basic",
+    "created": "2026-11-27T13:26",
+    "stage": "COMPLETED",
+    "running_min": 1.2,
+    "usd": 0.0
+   },
+   {
+    "id": "6b0993c854072e8b7169fcf4",
+    "name": "vscan-cde30636",
+    "flavor": "cpu-basic",
+    "created": "2026-11-27T14:29",
+    "stage": "COMPLETED",
+    "running_min": 0.6,
+    "usd": 0.0
+   }
+  ],
+  "note": "running time x list price; storage of the private dataset/bucket not included"
+ },
+ "grand_total_usd": 114.52
+}

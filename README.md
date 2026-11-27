@@ -13,7 +13,10 @@ Khartoum (650 × 650 px tiles). This repo re-runs it with 2026 tools as a measur
 5. **Generalisation**: the same models on the other SpaceNet building datasets (SN4, SN6, SN7, SN8), a model trained on
    all of them, and a model trained without SN2 tested on the SN2 cities.
 
-Everything ran on Hugging Face (Inference Providers for the VLMs, HF Jobs for GPUs), for about $75–80 in total.
+All compute ran on Hugging Face (Inference Providers for the VLMs, HF Jobs for GPUs and CPUs). The work was done by Claude
+(Claude Code, Opus 5.5) over about 38 hours of wall-clock time. **Total cost ≈ $115: $73 Hugging Face + $42 Claude**
+([details](#cost-claude-and-hugging-face)). The full session trace is in [`trace/`](#session-trace). The headline
+model itself costs $2.26 of GPU time.
 
 ## Key findings
 
@@ -374,6 +377,8 @@ scripts/prepare_xds.py     other SpaceNet building datasets → 0.3 m RGB sub-ti
 scripts/check_leakage.py   geographic train/test overlap audit (SN6, SN8)
 scripts/pp_search.py       post-processing search on saved val probabilities (2-fold CV)
 scripts/band_ablation.py   scores the multispectral runs, paired bootstrap CIs
+scripts/session_costs.py   Claude + Hugging Face cost from the transcript and job records → results/costs.json
+scripts/export_trace.py    scrubbed session transcript → trace/
 jobs/sam_eval.py           HF Jobs (GPU): SAM 2.1 automatic / SigLIP2-filtered / box-prompted
 jobs/sam3_eval.py          HF Jobs (GPU): SAM 3 text-prompted segmentation
 jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training, tuned watershed, val scoring
@@ -381,6 +386,7 @@ jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training, tuned water
 jobs/transfer_eval.py      HF Jobs (GPU): cross-dataset scoring per angle band / region
 jobs/prep_ms.py            HF Jobs (CPU): 8-band PS-MS → uint8 shards aligned with the RGB shards
 jobs/xdxd/                 XD_XD 2017 reproduction: Keras-1 → PyTorch shim, data staging, 2017 OSM rebuild, run script
+trace/                     the Claude Code session that built this repo (readable TRACE.md + full transcript)
 results/                   JSON results per section (vlm_*, sam/, sam3/, supervised/, transfer/, xdxd/), raw VLM outputs
 ```
 
@@ -416,21 +422,88 @@ python scripts/pp_search.py --probs val_probs_u8.npz --out results/supervised/pp
 python scripts/band_ablation.py <dir with val_predictions csvs> results/supervised/band_ablation.json
 ```
 
-## Compute and cost
+## Cost: Claude and Hugging Face
 
-These are approximate, from job durations × list price. Every job ran on Hugging Face:
+Computed by `scripts/session_costs.py` → `results/costs.json`. Inputs are the session transcript (token usage of every
+Claude API request) and the Hugging Face job records (`list_jobs` × the per-minute price in `list_jobs_hardware`). The
+session ran from 2026-11-26 00:47 to 2026-11-27 14:40 UTC.
 
-| Work | Approx. cost |
+| | Cost |
 |---|---|
-| VLM benchmark (Inference Providers) | $0.70 |
-| SAM 2.1 runs + first supervised models (A100, $2.50/h; incl. a smoke test and a billing-interrupted run) | $7 |
-| Generalisation study: data prep, generalist (incl. a cancelled run with SN1), transfer evals | $14 |
-| Geo-split SN6 + retrained generalist, DINOv3, SAM 3, 2017 OSM rebuild (CPU job) | $20–25 |
-| No-SN2 model; XD_XD reproduction (incl. failed environment attempts and cancelled Vegas/Shanghai runs) | $24 |
-| Multispectral ablation (shard prep + 3 training runs) | $9 |
-| **Total** | **≈ $75–80** |
+| Claude (agent doing all the work), API list-price equivalent | **$41.68** |
+| Hugging Face Jobs (56 jobs: 20.2 A100-hours, 10.6 A10G-hours, CPU) | **$72.14** |
+| Hugging Face Inference Providers (VLM benchmark) | $0.70 |
+| **Total** | **≈ $114.5** |
 
-The headline result itself, the 0.755 model, costs about $2.20 of GPU time.
+**Claude.**
+
+| Model | Requests | Input tokens | Output tokens | Cache reads | Cache writes (1 h) | Cost |
+|---|---|---|---|---|---|---|
+| Claude Opus 5.5 (main agent) | 489 | 1.1 k | 387 k | 99.6 M | 1.75 M | $41.67 |
+| Claude Haiku 5.5 (two small helper agents) | 5 | – | 4 k | 36 k | 45 k (5 min) | $0.01 |
+
+* **Prices are API list prices** (Opus 5.5: $4 in / $20 out per MTok, $0.20 cache read, $8 for 1-hour cache writes).
+  The work ran through Claude Code, so actual billing depends on the plan; these numbers are what the same tokens cost
+  on the API.
+* **Most of the cost is re-reading context, not writing.** The output (code, analysis, this README) is $7.58. Cache
+  reads of the growing conversation are $19.25 and cache writes $13.89: every step of a long agent session re-reads the
+  history from cache.
+* **The harness agrees.** Claude Code's own running total was $35.87 at its last checkpoint, which came before the final
+  write-up turns.
+* **About 1 hour of model time against 3 hours of tool time.** Most of the ~38 h wall clock was waiting on GPU jobs.
+
+**Hugging Face, by experiment.**
+
+| Experiment | Jobs | Running time | Cost |
+|---|---|---|---|
+| XD_XD 2017 reproduction (incl. OSM planet rebuild, failed environment attempts, cancelled Vegas/Shanghai) | 23 | 19.2 h | $34.78 |
+| Generalist training (incl. a cancelled run with SN1) | 3 | 3.4 h | $8.57 |
+| Multispectral ablation (shard prep, 3 runs, data checks) | 7 | 3.1 h | $7.60 |
+| Supervised SN2 models (EffNetV2-M, ConvNeXt-B, ensemble) | 4 | 2.5 h | $6.26 |
+| DINOv3 | 1 | 2.2 h | $5.40 |
+| Transfer / generalisation evals | 5 | 1.6 h | $3.78 |
+| No-SN2 training | 1 | 1.3 h | $3.26 |
+| SAM 2.1 | 4 | 0.6 h | $1.38 |
+| SAM 3 | 2 | 0.4 h | $1.11 |
+| Smoke tests and checks | 6 | – | $0.00 |
+
+**Hugging Face, by hardware.**
+
+| Flavor | Price | Jobs | Running time | Cost |
+|---|---|---|---|---|
+| a100-large (A100 80 GB) | $2.50/h | 25 | 20.2 h | $50.50 |
+| a10g-large | $1.50/h | 13 | 10.4 h | $15.62 |
+| cpu-performance | $1.90/h | 2 | 3.1 h | $5.82 |
+| a10g-small, cpu-basic, cpu-upgrade, l40sx1 | | 16 | 0.6 h | $0.20 |
+
+Notes on the Hugging Face figures:
+* **Cancelled jobs.** These report no running time. Their end time is taken from the session record: the cancel command,
+  or the last log write for the two jobs the platform cancelled when prepaid credit ran out. The two earliest are upper
+  bounds.
+* **Not included:** storage of the private dataset and bucket.
+* **Where the money went:** almost half the compute was the XD_XD reproduction, because his 2017 schedule trains with
+  batch size 2. The 2026 model that beats it costs $2.26.
+
+## Session trace
+
+[`trace/`](trace/) holds the complete record of the Claude Code session that produced this repo:
+
+* `trace/TRACE.md`: a readable rendering of every user prompt, every Claude reply, and every tool call with its command.
+  Tool results are truncated to 1,500 characters. The context-compaction summary is included where the conversation was
+  compacted.
+* `trace/session.jsonl.gz`: the full transcript (about 2,900 entries), with every tool call and untruncated result.
+* `trace/subagents/*.jsonl.gz`: the two helper-agent transcripts.
+
+Personal details are scrubbed by `scripts/export_trace.py`: e-mail addresses, the Hugging Face account response (name,
+e-mail, orgs, billing) and the claude.ai organisation id. No credentials were ever in the session, because all access
+was proxy-injected.
+
+Some mistakes are visible in the trace and were fixed:
+* **SAM 3.** A running score was mis-reported as the final one.
+* **SN6.** The first split leaked test ground into training, and was redone geographically.
+* **XD_XD.** Several environment failures came before the reproduction ran.
+* **Multispectral check.** Five blank-tile IDs were briefly invented in a script before being replaced with the
+  real list.
 
 ## Limitations and open questions
 

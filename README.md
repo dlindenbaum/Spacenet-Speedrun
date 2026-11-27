@@ -1,57 +1,95 @@
-# SpaceNet 2 Speedrun — how far have we come since 2017?
+# SpaceNet 2 Speedrun: how far have we come since 2017?
 
-Revisiting the [SpaceNet 2 building-footprint challenge](https://medium.com/the-downlinq/2nd-spacenet-competition-winners-code-release-c7473eea7c11)
-(Vegas, Paris, Shanghai, Khartoum; 0.3 m WorldView-3, 650×650 tiles) with 2026 tools:
+The [SpaceNet 2 building-footprint challenge](https://medium.com/the-downlinq/2nd-spacenet-competition-winners-code-release-c7473eea7c11)
+(2017) asked for every building footprint in 0.3 m WorldView-3 imagery of four cities: Las Vegas, Paris, Shanghai and
+Khartoum (650 × 650 px tiles). This repo re-runs it with 2026 tools as a measure of progress. It covers:
 
-1. **Zero-shot VLMs** (Gemma 4, Qwen3-VL, Nemotron VL) through Hugging Face Inference Providers.
-2. **Zero-shot SAM 2.1** (automatic masks, SigLIP2-filtered masks, VLM-box-prompted masks) on HF Jobs GPUs.
-3. **A modern supervised model** (U-Net + ImageNet-21k EfficientNetV2-M, body/border/contact heads, watershed) trained on HF Jobs, to see whether we can beat the 2017 winner.
+1. **Zero-shot models** with no SpaceNet training: vision-language models (Gemma 4, Qwen3-VL, Nemotron VL), SAM 2.1
+   (with and without VLM box prompts) and SAM 3 (text prompt "building").
+2. **A modern supervised model** (ConvNeXt-B U-Net with watershed post-processing, about an hour on one GPU), plus
+   EfficientNetV2-M, a DINOv3 satellite-pretrained ViT and an ensemble.
+3. **A 1:1 rerun of the 2017 winner** (XD_XD's original code, retrained on our split) to compare on identical tiles.
+4. **Ablations**: post-processing search, 8-band multispectral vs RGB input.
+5. **Generalisation**: the same models on the other SpaceNet building datasets (SN4, SN6, SN7, SN8), a model trained on
+   all of them, and a model trained without SN2 tested on the SN2 cities.
 
-## TL;DR — yes, we win now
+Everything ran on Hugging Face (Inference Providers for the VLMs, HF Jobs for GPUs), for about $75–80 in total.
 
-| Approach (2026) | Training data | Overall F1 | vs 2017 winner (0.693) | Cost |
-|---|---|---|---|---|
-| **ConvNeXt-B (IN-22k) U-Net, RGB only, 1 model, 53 min on 1×A100** | SN2 train | **0.755** | **+0.062, wins all 4 cities** | ~$2.20 |
-| EffNetV2-M (IN-21k) U-Net, RGB only, 1 model, 56 min on 1×A100 | SN2 train | 0.731 | +0.038 | ~$2.35 |
-| Ensemble of both | SN2 train | 0.752 | +0.059 | +$0.45 |
-| DINOv3 ViT-L (satellite-pretrained, SAT-493M) U-Net, 128 min on 1×A100 | SN2 train | 0.716 | +0.023 | ~$5.30 |
-| **SAM 3, text prompt "building"** | **none (zero-shot)** | **0.642** | −0.051 (≈ 2017's 2nd place) | ~$1 GPU |
-| Gemma 4 31B (2×2 crops) boxes → SAM 2.1 | **none (zero-shot)** | 0.462 | −0.23 (≈ 2/3 of winner) | ~$0.05 API + GPU |
-| Gemma 4 26B-A4B boxes alone | none | 0.155 | | $0.01 |
+## Key findings
+
+| Approach (scored on our held-out SN2 `val`, 1,037 tiles, unless noted) | SpaceNet training data | Overall F1 |
+|---|---|---|
+| **ConvNeXt-B U-Net, RGB, 1 model, 53 min on 1×A100 (~$2.20)** | SN2 train | **0.755** |
+| … with per-city post-processing (2-fold cross-validated on val) | SN2 train | 0.761 |
+| … with all 8 multispectral bands | SN2 train | 0.752 |
+| … EfficientNetV2-M encoder / ensemble of both | SN2 train | 0.731 / 0.752 |
+| … trained on SN2 + SN4 + SN6 + SN8 ("generalist") | SN2, SN4, SN6, SN8 | 0.738 |
+| … DINOv3 ViT-L satellite-pretrained encoder | SN2 train | 0.716 |
+| *XD_XD, 2017 winner (official test set; [leaderboard](#target-to-beat-2017-final-leaderboard))* | *SN2 train* | *0.693* |
+| XD_XD's code retrained on our split: Paris / Khartoum only | SN2 train | 0.697 / 0.512 |
+| **SAM 3, text prompt "building", zero-shot** | **none** | **0.642** |
+| Gemma 4 31B boxes → SAM 2.1, zero-shot (100-tile `eval_small`) | none | 0.462 |
+| ConvNeXt-B U-Net trained on SN4 + SN6 + SN8 only (SN2 cities unseen) | SN4, SN6, SN8 | 0.325 |
+| Gemma 4 31B boxes alone, zero-shot (`eval_small`) | none | 0.279 |
+
+1. **We win now.** A single RGB ConvNeXt-B U-Net trained for under an hour scores 0.755 against XD_XD's 0.693, and leads
+   in all four cities. On identical tiles (XD_XD's own code retrained on our split) the lead is about 0.10 in both
+   cities we could finish.
+2. **The 2017 winner's extra inputs no longer matter.** 8-band multispectral input gives no gain over RGB (every
+   difference within ±0.004 and inside its 95 % CI). XD_XD's OpenStreetMap layers are not needed either: our models use
+   none.
+3. **Zero-shot is now competitive with 2017.** SAM 3 with one English word scores 0.642, level with 2017's 2nd place and
+   0.05 behind the winner, with no SpaceNet labels. It is within 0.02 of the retrained XD_XD in Paris and Khartoum.
+   VLMs alone cannot draw footprints, but their boxes are usable SAM prompts.
+4. **The gains come from the model, not post-processing.** A cross-validated post-processing search adds only +0.005.
+   The satellite-pretrained DINOv3 ViT is worse than an ImageNet ConvNeXt (−0.04).
+5. **Supervised models need data from the target region.** Pooling SN4/SN6/SN8 into training costs 0.017 on SN2 and
+   roughly doubles F1 on those datasets. But a model trained without SN2 scores only 0.325 on the SN2 cities, half of
+   zero-shot SAM 3. Planet 4 m imagery (SN7) is out of reach for any 0.3 m model.
 
 ![qualitative](results/qualitative.png)
 
 *Left: ground truth. Middle: fully zero-shot Gemma 4 → SAM 2.1. Right: supervised ConvNeXt-B U-Net. One val tile per city.*
 
-## Target to beat (2017 final leaderboard, F1 @ IoU ≥ 0.5)
+## Target to beat (2017 final leaderboard)
+
+F1 at IoU ≥ 0.5:
 
 | Entry | Vegas | Paris | Shanghai | Khartoum | **Overall** |
 |---|---|---|---|---|---|
-| XD_XD (1st; 3× U-Net ensemble, 8-band MS + OpenStreetMap) | 0.885 | 0.745 | 0.597 | 0.544 | **0.693** |
+| XD_XD (1st: per-city U-Net ensemble, 8-band multispectral + OpenStreetMap) | 0.885 | 0.745 | 0.597 | 0.544 | **0.693** |
 | wleite (2nd) | | | | | 0.643 |
 | nofto (3rd) | | | | | 0.579 |
 
-Source: DeepGlobe 2018 paper, Table 2 ([arXiv:1805.06561](https://arxiv.org/abs/1805.06561)); SpaceNet paper ([arXiv:1807.01232](https://arxiv.org/abs/1807.01232)).
+Sources: DeepGlobe 2018 paper, Table 2 ([arXiv:1805.06561](https://arxiv.org/abs/1805.06561)); SpaceNet paper
+([arXiv:1807.01232](https://arxiv.org/abs/1807.01232)).
 
 ## Evaluation protocol
 
-* The official test labels were never released, so everything is scored on a **held-out 10 % of the public training tiles**
-  (deterministic MD5 split, `val` = 1,037 tiles). Supervised post-processing thresholds are tuned on a separate 5 % `tune`
-  split carved out of train; the model never sees `val`.
-* Expensive zero-shot models are scored on **`eval_small`**: a fixed random 25 val tiles per city (100 tiles, 1,649 buildings).
-* Metric (`sn2/metric.py`): one-to-one greedy matching at IoU ≥ 0.5, F1 accumulated per city, overall = mean of the 4 city F1s
-  (same as the 2017 leaderboard). Polygons < 20 px² are ignored on both sides. Sanity check: GT → rasterised masks →
-  our watershed post-processing → polygons scores 0.998.
-* Inputs: PS-RGB (pan-sharpened RGB) only, stretched to 8-bit with a fixed per-city 1–99 % percentile stretch.
-  (The 2017 winner used 8-band multispectral + OSM, so RGB-only is a handicap for us.)
+* **Splits.** The official test labels were never released, so everything is scored on a held-out 10 % of the public
+  training tiles. The split is a deterministic MD5 hash: `val` = 1,037 tiles, 20,859 buildings. Supervised
+  post-processing thresholds are tuned on a separate 5 % `tune` split carved out of train. No model ever trains on `val`.
+  * Expensive zero-shot runs use `eval_small`: a fixed 25 val tiles per city (100 tiles, 1,649 buildings).
+  * Our `val` comes from the same AOIs as the 2017 test set but is not the same tiles. Comparisons with the leaderboard
+    are therefore close but not exact. The XD_XD rerun gives an exact comparison.
+* **Metric** (`sn2/metric.py`): one-to-one greedy matching at IoU ≥ 0.5, F1 accumulated per city. Overall = mean of the
+  four city F1s, as on the 2017 leaderboard. Polygons under 20 px² are ignored on both sides.
+  * Sanity check: ground truth → rasterised masks → our watershed → polygons scores 0.998.
+* **Input.** Pansharpened RGB (PS-RGB) at 0.3 m, stretched to 8-bit with a fixed per-city 1–99 % percentile stretch
+  (`scripts/prepare_dataset.py`). The multispectral ablation uses the 8-band PS-MS product with the same stretch.
+* **Noise level.** Most supervised numbers are single runs. The same recipe on the RGB product and on the RGB bands of
+  the 8-band product differs by 0.003, so differences under about 0.005 are within noise. For the band ablation this is
+  measured with a paired bootstrap over val tiles.
 
 ## Results
 
-### Zero-shot VLMs (eval_small: 100 val tiles, 1,649 buildings; F1 @ IoU ≥ 0.5)
+### 1. Zero-shot vision-language models
+
+`eval_small`: 100 val tiles, 1,649 buildings.
 
 Prompt: "Detect EVERY building footprint … return JSON `box_2d` normalized 0–1000". Each model is scored with whichever box
-axis order it actually emits (Gemma: `[y0,x0,y1,x1]`; Qwen3-VL/Nemotron: `[x0,y0,x1,y1]`). "2×2" = the tile is split into
-4 crops, each upsampled to 650 px and queried separately.
+axis order it actually emits (Gemma: `[y0,x0,y1,x1]`; Qwen3-VL/Nemotron: `[x0,y0,x1,y1]`). "2×2" means the tile is split into
+4 crops, each upsampled to 650 px and queried separately (`scripts/eval_vlm.py`).
 
 | Model (HF Inference Providers) | Output | Vegas | Paris | Shanghai | Khartoum | **Overall** | API cost |
 |---|---|---|---|---|---|---|---|
@@ -63,7 +101,9 @@ axis order it actually emits (Gemma: `[y0,x0,y1,x1]`; Qwen3-VL/Nemotron: `[x0,y0
 | nvidia/Nemotron-3.5-Super-VL-120B-A12B | boxes | 0.093 | 0.065 | 0.086 | 0.109 | 0.088 | $0.16 |
 | google/gemma-4-31B-it | polygons | 0.000 | 0.008 | 0.008 | 0.000 | 0.004 | $0.03 |
 
-### Zero-shot SAM 2.1 (hiera-large, tile upsampled 2×; same 100 tiles)
+### 2. Zero-shot SAM 2.1
+
+hiera-large, tile upsampled 2×, same 100 tiles (`jobs/sam_eval.py`):
 
 | Pipeline | Vegas | Paris | Shanghai | Khartoum | **Overall** |
 |---|---|---|---|---|---|
@@ -75,18 +115,18 @@ axis order it actually emits (Gemma: `[y0,x0,y1,x1]`; Qwen3-VL/Nemotron: `[x0,y0
 | SAM 2.1 automatic masks + SigLIP2 zero-shot "building roof" filter | 0.438 | 0.287 | 0.275 | 0.297 | 0.324 |
 | SAM 2.1 automatic masks (everything) | 0.196 | 0.135 | 0.149 | 0.161 | 0.160 |
 
-Takeaways:
-* **SAM's masks are essentially solved**: given perfect boxes it scores 0.97. The bottleneck is *recognition* — finding every building.
-* VLMs alone can't produce footprints (boxes too loose for IoU ≥ 0.5, polygons are nonsense), but their boxes make excellent
-  SAM prompts: **VLM → SAM is a 0.46 fully zero-shot pipeline** — ~2/3 of the 2017 winner with zero SpaceNet training data,
-  for a few cents of API calls. Cropping (more pixels per building) is the biggest single lever for the VLMs.
-* Recall is the limiter (Gemma finds ~50–60 % of buildings, under-counting dense blocks).
+* **SAM's masks are essentially solved.** Given perfect boxes it scores 0.97, so the bottleneck is *recognition*: finding
+  every building.
+* **VLMs can't produce footprints on their own.** Their boxes are too loose for IoU ≥ 0.5 and their polygons are nonsense.
+* **VLM boxes make good SAM prompts.** VLM → SAM is a 0.46 fully zero-shot pipeline for a few cents of API calls.
+  Cropping (more pixels per building) is the biggest single lever.
+* **Recall is the limiter.** Gemma finds about 50–60 % of buildings and under-counts dense blocks.
 
-### Zero-shot SAM 3 (text prompt, full held-out `val`: 1,037 tiles)
+### 3. Zero-shot SAM 3
 
-`jobs/sam3_eval.py`: SAM 3 (`facebook/sam3`, transformers `Sam3Model`) prompted with a single word on the whole RGB tile;
-instances above a score threshold become polygons. Prompt, crop grid and threshold were chosen on `eval_small`
-("building" > "house" > "roof"; 2×2 crops hurt), then the whole `val` split was scored once.
+`jobs/sam3_eval.py`: SAM 3 (`facebook/sam3`, transformers `Sam3Model`) is prompted with a single word on the whole RGB
+tile, and instances above a score threshold become polygons. Prompt, crop grid and threshold were chosen on `eval_small`
+("building" beat "house" and "roof"; 2×2 crops hurt). The full `val` split was then scored once.
 
 | Split / threshold | Vegas | Paris | Shanghai | Khartoum | **Overall** |
 |---|---|---|---|---|---|
@@ -94,87 +134,165 @@ instances above a score threshold become polygons. Prompt, crop grid and thresho
 | **val (1,037 tiles), 0.4** | 0.810 | 0.678 | 0.584 | 0.497 | **0.642** |
 | val, best threshold (0.35) | | | | | 0.644 |
 
-* SAM 3 with one English word is **0.18 better than the best SAM 2.1 / VLM pipeline** and about level with 2017's
-  2nd place (0.643), 0.05 behind the winner. It needs no SpaceNet labels at all.
-* Precision is decent (0.67–0.88); **recall is the limit** in the dense cities (Khartoum 0.40, Shanghai 0.51):
-  it merges or skips small touching buildings.
-* The `eval_small` estimate (0.671) was optimistic; it over-weights the easier tiles.
+* One English word beats the best SAM 2.1 / VLM pipeline by 0.18. It is level with 2017's 2nd place (0.643) and 0.05
+  behind the winner.
+* Precision is decent (0.67–0.88). **Recall is the limit in the dense cities** (Khartoum 0.40, Shanghai 0.51): SAM 3
+  merges or skips small touching buildings.
+* The `eval_small` estimate (0.671) was optimistic because it over-weights easier tiles.
 
-### Supervised (full held-out `val`: 1,037 tiles, 20,859 buildings)
+### 4. Supervised U-Net
 
-Recipe (`jobs/train_seg.py`): U-Net (segmentation_models_pytorch) with a timm ImageNet-21k/22k encoder; 3 sigmoid outputs
-(building body, 2-px border, building-building contact) trained with weighted BCE + Dice; images upsampled 1.5× (0.2 m/px);
-random 512 px crops with scale jitter, flips/rot90, photometric jitter; AdamW, cosine LR, bf16, 20k steps × batch 12
-(≈ 25 epochs). Inference: 4-way flip/transpose TTA, marker-controlled watershed (seeds = body·(1−border)·(1−contact)),
-`approxPolyDP` polygons. Watershed thresholds tuned on the separate `tune` split.
+Full `val`: 1,037 tiles, 20,859 buildings.
+
+**Recipe** (`jobs/train_seg.py`):
+* **Model:** a U-Net (segmentation_models_pytorch) with a timm ImageNet-21k/22k encoder. It has 3 sigmoid outputs:
+  building body, a 2-px border, and building-building contact.
+* **Training:** weighted BCE + Dice loss on images upsampled 1.5× (0.2 m/px), using random 512 px crops with scale
+  jitter, flips/rot90 and photometric jitter. AdamW with cosine LR in bf16, 20k steps × batch 12 (about 25 epochs).
+* **Inference:**
+  * 4-way flip/transpose test-time augmentation.
+  * Marker-controlled watershed, with seeds = body·(1−border)·(1−contact).
+  * `approxPolyDP` turns the instances into polygons.
+  * Thresholds are tuned on the `tune` split.
 
 | Model | Vegas | Paris | Shanghai | Khartoum | **Overall** |
 |---|---|---|---|---|---|
-| XD_XD — 2017 winner (8-band MS + OSM, 3-model ensemble; official test set) | 0.885 | 0.745 | 0.597 | 0.544 | 0.693 |
-| **ConvNeXt-B U-Net (RGB only)** | **0.892** | **0.807** | **0.709** | 0.611 | **0.755** |
-| EffNetV2-M U-Net (RGB only) | 0.878 | 0.768 | 0.691 | 0.586 | 0.731 |
-| Ensemble (mean of both; wider pp grid) | 0.890 | 0.800 | 0.706 | **0.612** | 0.752 |
-| DINOv3 ViT-L/16 SAT-493M U-Net (features from blocks 6/12/18/24 + conv stem; backbone LR 0.1×) | 0.867 | 0.746 | 0.690 | 0.559 | 0.716 |
+| XD_XD, 2017 winner (official test set) | 0.885 | 0.745 | 0.597 | 0.544 | 0.693 |
+| **ConvNeXt-B U-Net (RGB)** | **0.892** | **0.807** | **0.709** | 0.611 | **0.755** |
+| EfficientNetV2-M U-Net (RGB) | 0.878 | 0.768 | 0.691 | 0.586 | 0.731 |
+| Ensemble (mean of both; wider post-processing grid) | 0.890 | 0.800 | 0.706 | **0.612** | 0.752 |
+| DINOv3 ViT-L/16 SAT-493M U-Net (blocks 6/12/18/24 + conv stem; backbone LR 0.1×) | 0.867 | 0.746 | 0.690 | 0.559 | 0.716 |
 
-The satellite-pretrained DINOv3 backbone is **worse** than ImageNet ConvNeXt-B here (−0.04) despite 3× the parameters and
-2.4× the training time: at 16 px patches its features are coarse for 3–15 m buildings, and the conv stem/decoder has to
-recover the boundary detail. Satellite pretraining does not replace a convolutional, high-resolution encoder for footprints.
+* **The biggest gains over 2017 are in the hard cities:** Shanghai +0.11, Khartoum +0.07, Paris +0.06. Vegas was already
+  near saturation in 2017.
+* **The satellite-pretrained DINOv3 backbone is worse than ImageNet ConvNeXt-B (−0.04)**, despite 3× the parameters and
+  2.4× the training time.
+  * Its 16 px patches give features too coarse for 3–15 m buildings, and the conv stem and decoder must recover the
+    boundary detail.
+  * Satellite pretraining does not replace a convolutional, high-resolution encoder for footprints.
+* Precision and recall per city are in `results/supervised/*.json`.
 
-**Post-processing is saturated.** `scripts/pp_search.py` re-runs the watershed on the saved val probabilities over
-36 threshold settings × polygon dilation (0–1.5 px) × minimum area (20–100 px), with 2-fold cross-validation over `val`
-(choose on one half, score on the other). Best honest gain: **+0.005** (0.7555 → 0.7607 with per-city settings;
-0.7575 with one global setting). The in-sample optimum is only 0.761, and the chosen settings differ between folds, so
-the remaining gap is in the probabilities themselves, not the polygon extraction (`results/supervised/pp_search_convnextb.json`).
+### 5. Head to head: XD_XD's 2017 code retrained on our split
 
-Biggest gains are in the hard cities (Shanghai +0.11, Khartoum +0.07, Paris +0.06); Vegas was already near saturation in 2017.
-Caveat: our `val` is a held-out slice of the public training AOIs, not the (unreleased) official test set, so numbers are
-comparable but not identical to the leaderboard. Precision/recall per city are in `results/supervised/*.json`.
+For a strict 1:1 comparison, `jobs/xdxd/` runs XD_XD's original code
+([BuildingDetectors_Round2/1-XD_XD](https://github.com/SpaceNetChallenge/BuildingDetectors_Round2)) **unmodified** on our
+train/val split. That means:
+* his per-city v9s, v13 and v16 (OpenStreetMap) U-Nets;
+* his v17 ensemble;
+* his own thresholds and min-area tuning.
 
-### Do the 8 multispectral bands matter? No.
+His SN2 weights were never released, so the models are retrained. Only the 2017 environment is replaced:
+* **Framework.** Keras 1.1 / Theano 0.9 / CUDA 8 cannot run on current GPUs. `jobs/xdxd/shim/keras` re-implements the
+  Keras-1 API his code uses on PyTorch: layers, `fit`/`fit_generator`, checkpoints and early stopping.
+* **Libraries.** 2017 library behaviour is pinned:
+  * numpy 1.23, pandas 1.5 and click 6.7;
+  * shapely 1.8, patched so empty polygons behave like shapely 1.5;
+  * `gdal`, replaced by a rasterio shim.
 
-XD_XD used all 8 WorldView-3 bands. To test whether they help a modern model, the 8-band pansharpened product (PS-MS, 0.3 m)
-was converted with the same per-city 1–99 % stretch as our RGB tiles (`jobs/prep_ms.py`), and the ConvNeXt-B recipe was
-retrained three times, changing only the input bands (`train_seg.py --bands`). Extra bands enter through the first conv
-with **zero-initialised** filters, so each run starts as the RGB model and only changes if the bands carry signal.
+  CUDA must be initialised before shapely 1.8 is imported, or torch segfaults.
+* **OpenStreetMap.** His OSM layers came from Mapzen Metro Extracts, which went offline in 2018. `jobs/xdxd/osm_2017.py`
+  rebuilds them from the **2017-05-01 OSM planet** (61 GB) in the same imposm shapefile layout.
+* **Data.** `jobs/xdxd/stage_data.py` lays out our split in the 2017 directory structure, with the original 16-bit
+  RGB-PanSharpen, MUL-PanSharpen and PAN tiles.
 
-| Input (all from PS-MS unless noted) | Vegas | Paris | Shanghai | Khartoum | **Overall** | Δ vs MS-RGB, 95 % CI |
+Scored with our metric on our `val` tiles (`results/xdxd/`):
+
+| City | XD_XD retrained, our val (P / R) | XD_XD 2017 leaderboard | **ConvNeXt-B U-Net** | SAM 3 zero-shot |
+|---|---|---|---|---|
+| Paris (105 tiles) | 0.697 (0.77 / 0.64) | 0.745 | **0.807** | 0.678 |
+| Khartoum (87 tiles) | 0.512 (0.62 / 0.44) | 0.544 | **0.611** | 0.497 |
+
+* **The reproduction looks faithful, not tuned.** It lands 0.03–0.05 below the leaderboard scores, which is plausible
+  for a different test set and a rebuilt framework and OSM stack.
+* **On identical tiles the 2026 model is about 0.10 ahead in both cities**, slightly more than against the leaderboard.
+* **SAM 3 with no training is within 0.02** of the retrained 2017 winner in both cities.
+* **Vegas and Shanghai were not completed.**
+  * With batch size 2, his v13 and v16 models take about 2.5–3 h each per city, even on an A100.
+  * Those runs were cancelled because they could not finish within the remaining credit, and models are only saved at
+    the end.
+  * They also need more than 46 GB of RAM for preprocessing.
+
+### 6. Post-processing is saturated
+
+`scripts/pp_search.py` re-runs the watershed on the ConvNeXt-B model's saved val probabilities over:
+* 36 threshold settings;
+* polygon dilation of 0–1.5 px;
+* minimum polygon area of 20–100 px;
+* one global setting, or a setting per city.
+
+To keep it honest, settings are chosen on one half of `val` and scored on the other, then the halves are swapped
+(2-fold cross-validation).
+
+| Post-processing | Vegas | Paris | Shanghai | Khartoum | **Overall** |
+|---|---|---|---|---|---|
+| Thresholds tuned on `tune` (the 0.755 model) | 0.893 | 0.807 | 0.709 | 0.613 | 0.7555 |
+| Best global thresholds | 0.891 | 0.812 | 0.713 | 0.614 | 0.7575 |
+| + 0.5 px dilation and min-area filter | 0.892 | 0.816 | 0.713 | 0.615 | 0.7588 |
+| Everything per city | 0.892 | 0.815 | 0.716 | 0.620 | **0.7607** |
+
+* **The ceiling is close.** Even the in-sample optimum is only 0.761.
+* **The chosen settings differ between the two halves**, so part of the +0.005 is noise.
+* **The most consistent change is a stricter seed threshold**, 0.8 rather than 0.7, which merges fewer touching
+  buildings. Going higher (0.85–0.9) is worse.
+* **The remaining errors are in the probabilities, not the polygon extraction**
+  (`results/supervised/pp_search_convnextb.json`).
+
+### 7. Do the 8 multispectral bands matter? No.
+
+XD_XD used all 8 WorldView-3 bands. To test whether they help a modern model:
+* **Data.** The 8-band pansharpened product (PS-MS, 0.3 m, same pixel grid as RGB) was converted with the same per-city
+  stretch as our RGB tiles (`jobs/prep_ms.py`). Its red, green and blue bands correlate 0.9985–0.9999 with the RGB
+  tiles.
+* **Runs.** The ConvNeXt-B recipe was retrained three times, changing only the input bands (`train_seg.py --bands`).
+* **Initialisation.** Extra bands enter the first conv with **zero-initialised** filters. Each run therefore starts
+  exactly as the RGB model (verified bit-identical) and only changes if the bands carry signal.
+
+| Input (from PS-MS unless noted) | Vegas | Paris | Shanghai | Khartoum | **Overall** | Δ vs MS-RGB, 95 % CI |
 |---|---|---|---|---|---|---|
 | PS-RGB product (the 0.755 model) | 0.892 | 0.807 | 0.709 | 0.611 | 0.755 | −0.002 … +0.009 |
-| MS red/green/blue (bands 5,3,2) | 0.899 | 0.796 | 0.705 | 0.605 | 0.752 | – |
+| MS red/green/blue (WV-3 bands 5,3,2) | 0.899 | 0.796 | 0.705 | 0.605 | 0.752 | – |
 | MS RGB + NIR1 | 0.896 | 0.802 | 0.709 | 0.595 | 0.750 | −0.007 … +0.004 |
 | **MS all 8 bands** (+ coastal, yellow, red-edge, NIR2) | 0.893 | 0.799 | 0.709 | 0.608 | 0.752 | −0.004 … +0.006 |
 
-CI: paired bootstrap over val tiles, resampled within each city (`scripts/band_ablation.py`, `results/supervised/band_ablation.json`).
+CI: paired bootstrap over val tiles, resampled within each city (`scripts/band_ablation.py`,
+`results/supervised/band_ablation.json`).
 
-* **No band combination moves the score beyond run-to-run noise** (all differences ≤ 0.004, every CI contains 0),
-  overall or in any city. NIR does not help even in Khartoum, where bare soil vs. roof vs. vegetation was the
-  expected win. Building footprints at 0.3 m are a *spatial* problem (edges, shape, shadow); colour from RGB is enough.
-* Spectral indices (NDVI etc.) were not run separately: they are fixed functions of red and NIR, and the network with NIR
-  available gained nothing, so a precomputed index is very unlikely to.
-* PAN is not a separate input: both pansharpened products are already built at PAN's 0.3 m resolution.
-* XD_XD's gains from multispectral in 2017 likely came from his small U-Net trained from scratch; an ImageNet-pretrained
-  encoder already extracts what it needs from RGB.
-* Data note: SpaceNet's PS-MS files are blank (all zeros) for 10 Vegas tiles whose RGB files are fine (2 of them in val);
-  excluding them changes no score by more than 0.0001.
+* **No band combination moves the score beyond run-to-run noise.** All differences are ≤ 0.004 and every CI contains 0,
+  overall and in every city.
+* **NIR does not help even in Khartoum.** Telling bare soil, roof and vegetation apart was the expected win there.
+  At 0.3 m, footprint extraction is a *spatial* problem (edges, shape, shadow), and RGB colour is enough.
+* **Spectral indices (NDVI etc.) were not run separately.** They are fixed functions of red and NIR, and the network
+  gained nothing with NIR available, so a precomputed index is very unlikely to help.
+* **PAN is not a separate input.** Both pansharpened products are already built at PAN's 0.3 m resolution.
+* **Why the bands may have helped in 2017 (not tested):** XD_XD's U-Nets were trained from scratch, while an
+  ImageNet-pretrained encoder already extracts what it needs from RGB.
+* **Data defect:** SpaceNet's PS-MS files are blank (all zeros) for 10 Vegas tiles whose RGB files are fine, 2 of them in
+  val. Excluding those tiles changes no score by more than 0.0001.
 
-### How general is it? Other SpaceNet building datasets
+### 8. How general is it? Other SpaceNet building datasets
 
-All other SpaceNet building datasets are resampled to SN2's 0.3 m GSD, converted to 8-bit RGB, and cut into sub-tiles of at most 1,600 px
-(`scripts/prepare_xds.py`). Scoring uses the same F1 @ IoU ≥ 0.5 scorer, with TP/FP/FN pooled per group. Test splits are
-held out **by location**: in SN4, a test location is test at all 27 look angles, and none of the 40 test locations appears in training
-(0 overlap; the 300 train locations are disjoint).
-`scripts/check_leakage.py` checks the other datasets by geographic footprint:
-* **SN8 is clean**: 0 of 48 Germany and 3 of 142 Louisiana test tiles touch a training image, covering 1.4 % of test area on average.
-* **SN6 leaked under the original split**: its tiles come from overlapping imaging strips, so a split by tile number did not
-  separate ground (99.8 % of test area was covered by training images). SN6 is now split **geographically**: 1 km grid
-  cells are hashed to test, and no training tile may come within 50 m of a test tile. Result: 300 test / 1,495 train tiles,
-  0 of 300 test tiles overlapping training. The generalist was retrained on this split; all numbers below use it.
+**Data.** The other SpaceNet building datasets are resampled to SN2's 0.3 m GSD, converted to 8-bit RGB, and cut into
+sub-tiles of at most 1,600 px (`scripts/prepare_xds.py`). They are scored with the same F1 @ IoU ≥ 0.5 scorer, with
+TP/FP/FN pooled per group.
 
-* **SN2-only**: the 0.755 ConvNeXt-B above, applied zero-shot.
-* **Generalist**: the same recipe, trained on SN2 + the SN4/SN6/SN8 train splits (60 % of crops from the extra datasets, area-weighted),
-  20k steps, 81 min on 1×A100.
-* **SN7** (Planet 4 m) is never trained on; it is a pure unseen-sensor test.
-* **SN1** (Rio) is excluded because its labels are poor quality.
+**Test splits are held out by location**, and `scripts/check_leakage.py` audits train/test overlap by geographic
+footprint:
+* **SN4 (Atlanta, 27 look angles).** A test location is test at every angle. None of the 40 test locations appears in
+  the 300 training locations.
+* **SN8 is clean.** 0 of 48 Germany and 3 of 142 Louisiana test tiles touch a training image, covering 1.4 % of test area
+  on average.
+* **SN6 (Rotterdam) is split geographically.** Its tiles come from overlapping imaging strips, so a split by tile number
+  leaked: 99.8 % of test area was covered by training images.
+  * 1 km grid cells are hashed to test, and no training tile may come within 50 m of a test tile.
+  * That gives 300 test and 1,495 train tiles, with 0 test tiles overlapping training.
+* **SN1 (Rio) is excluded** because of poor label quality.
+* **SN7 (Planet 4 m) is never trained on.** It is a pure unseen-sensor test.
+
+**Models.**
+* **SN2-only:** the 0.755 ConvNeXt-B above, applied zero-shot.
+* **Generalist:** the same recipe trained on SN2 plus the SN4/SN6/SN8 train splits, 20k steps, 81 min on 1×A100.
+  * 40 % of crops come from SN2 and 20 % each from SN4, SN6 and SN8 (area-weighted within each).
+  * SN4 has 3,000 tiles but only 300 distinct locations; SN6 has 1,495 tiles and SN8 1,217.
 
 | Dataset (test split) | SN2-only F1 | **Generalist F1** | Generalist P / R |
 |---|---|---|---|
@@ -187,103 +305,142 @@ held out **by location**: in SN4, a test location is test at all 27 look angles,
 | SN8 Germany (pre-flood) | 0.107 | **0.581** | 0.56 / 0.60 |
 | SN7 Planet 4 m (unseen) | 0.0005 | 0.000 | – |
 
-The generalist trains 40 % of crops on SN2 and 20 % each on SN4 (3,000 tiles but only 300 distinct locations), SN6
-(1,495 tiles) and SN8 (1,217 tiles). An earlier generalist on the leaky SN6 split scored 0.743 on SN2 and within 0.02 of
-these numbers elsewhere (`results/transfer/generalist_nosn1_convnextb.json`).
+* **A model trained on one dataset is narrow.** Out of domain, the SN2-only model stays fairly precise but misses most
+  buildings, and it collapses as look angle grows.
+* **A single model trained on the pooled data is general.** It loses only 0.017 on SN2 and roughly doubles F1 on SN4 and
+  SN8.
+  * For reference, the SN4 paper's best baseline (TernausNet, trained on SN4) scored 0.62 / 0.43 / 0.22 on the three
+    angle bands. Our generalist scores 0.74 / 0.50 / 0.27, but on our own location-held-out split, not the official test
+    set.
+* **SN6 stays hard (0.44).** Recall is only 0.31 on Rotterdam's dense, small, shadowed buildings. The SN6 challenge
+  winner (~0.42) used SAR, so the scores are not comparable.
+* **Three SN4 collects stay near zero even for the generalist:** 29°, 32° and 53° (0.21 / 0.04 / 0.06). Most collects at
+  similar angles score 0.5–0.7, so this looks like image/label misregistration in those collects. This has not been
+  verified.
+* **SN7 is out of reach for any 0.3 m model.** At 4 m a house is about 2–3 px, and resampling cannot create that detail.
+* **SN8 reference scores are not comparable**, because SN8 was scored with a different, flood-attribute metric.
+* An earlier generalist on the leaky SN6 split scored 0.743 on SN2 and within 0.02 of these numbers elsewhere
+  (`results/transfer/generalist_nosn1_convnextb.json`).
 
-Takeaways:
-* **A model trained on one dataset is narrow.** Out of domain, the SN2-only model stays fairly precise but misses most buildings,
-  and it collapses as look angle grows.
-* **A single model trained on the pooled data is general.** It loses only 0.017 on SN2 and roughly doubles F1 on SN4 and SN8.
-  * For reference, the SN4 paper's best baseline (TernausNet, trained on SN4) scored 0.62 / 0.43 / 0.22 on the three angle bands.
-    Our generalist scores 0.74 / 0.50 / 0.27, but on our own location-held-out split, not the official test set.
-* **SN6 stays hard** (0.44): recall is only 0.31 on Rotterdam's dense, small, shadowed buildings, and the generalist saw just
-  1,495 SN6 tiles. The SN6 challenge winner (~0.42) used SAR, so the scores are not comparable.
-* **Some SN4 collects stay near zero even for the generalist**: 29°, 32° and 53° (0.21 / 0.04 / 0.06), even though 29° and 53° were in training.
-  Most other collects at similar angles score 0.5–0.7, so this looks like image/label misregistration in those collects, not a
-  model limit. This has not been verified.
-* **SN7 is out of reach** for any 0.3 m model. At 4 m a house is about 2–3 px, and resampling to 0.3 m cannot create that detail.
-  Sensor resolution, not the model, is the limit.
-* Reference scores from SN8 are not comparable: it was scored with a different, flood-attribute metric.
+**Can it generalise to cities it has never seen?** Not well. The same recipe was trained only on SN4 + SN6 + SN8, with no
+SN2 at all and fixed post-processing, so no SN2 labels were used anywhere.
 
-**Can it generalise to cities it has never seen?** The same recipe trained only on SN4 + SN6 + SN8 (no SN2 at all; fixed
-post-processing, so no SN2 labels used anywhere) scores **0.325** on SN2 val: Vegas 0.497, Paris 0.569, Shanghai 0.184,
-Khartoum 0.051 (precision 0.5–0.7, recall 0.03–0.47; `results/supervised/nosn2_convnextb_20k.json`). Three building
-datasets from the US and Europe do not cover dense Chinese blocks or Sudanese compounds, and even US suburbs lose most
-recall to SN2's tighter labelling. **Zero-shot SAM 3 (0.642) is twice as good on unseen cities** as this supervised model.
-
-Per-angle and per-region numbers: `results/transfer/{sn2only,generalist_geo}_convnextb.json` and
-`results/transfer/sn2only_convnextb_sn6geo.json`; run with `jobs/transfer_eval.py`.
-
-### Reproducing XD_XD's 2017 winner on our split (Paris and Khartoum)
-
-To get a strict 1:1 comparison, `jobs/xdxd/` runs XD_XD's original code
-([BuildingDetectors_Round2/1-XD_XD](https://github.com/SpaceNetChallenge/BuildingDetectors_Round2)) **unmodified** on our
-train/val split: per-city v9s + v13 + v16 (OSM) U-Nets, the v17 ensemble, his own thresholds and min-area tuning.
-His SN2 weights were never released, so it is retrained. Only the 2017 environment is replaced:
-* Keras 1.1 / Theano 0.9 / CUDA 8 cannot run on current GPUs. `jobs/xdxd/shim/keras` re-implements the Keras-1 API
-  that his code uses (layers, `fit`/`fit_generator`, checkpoints, early stopping) on PyTorch.
-* 2017 library behaviour: numpy 1.23, pandas 1.5, shapely 1.8 (patched so empty polygons behave like shapely 1.5),
-  click 6.7, `gdal` replaced by a rasterio shim. CUDA must be initialised before shapely 1.8 is imported, or torch segfaults.
-* His OpenStreetMap layers came from Mapzen Metro Extracts, which went offline in 2018. `jobs/xdxd/osm_2017.py` rebuilds them
-  from the **2017-05-01 OSM planet** (61 GB) in the same imposm shapefile layout.
-
-Scored with our metric on our `val` tiles (`results/xdxd/`):
-
-| City | XD_XD retrained, our val (P / R) | XD_XD 2017 leaderboard | **ConvNeXt-B U-Net** | SAM 3 zero-shot |
+| City | No-SN2 model F1 | Precision / recall | Trained on SN2 | SAM 3 zero-shot |
 |---|---|---|---|---|
-| Paris (105 tiles) | 0.697 (0.77 / 0.64) | 0.745 | **0.807** | 0.678 |
-| Khartoum (87 tiles) | 0.512 (0.62 / 0.44) | 0.544 | **0.611** | 0.497 |
+| Vegas | 0.497 | 0.69 / 0.39 | 0.892 | 0.810 |
+| Paris | 0.569 | 0.71 / 0.47 | 0.807 | 0.678 |
+| Shanghai | 0.184 | 0.58 / 0.11 | 0.709 | 0.584 |
+| Khartoum | 0.051 | 0.51 / 0.03 | 0.611 | 0.497 |
+| **Overall** | **0.325** | | **0.755** | **0.642** |
 
-* The retrained solution lands 0.03–0.05 below its leaderboard scores, which is plausible for a different test set and a
-  rebuilt OSM/framework stack. It is a faithful reproduction, not a tuned one.
-* **On identical tiles the 2026 model is ~0.10 ahead in both cities**, a slightly larger margin than against the leaderboard.
-* SAM 3 with no training is within 0.02 of the retrained 2017 winner in both cities.
-* Vegas and Shanghai were not completed: with batch size 2, v13/v16 take ~2.5–3 h each per city even on an A100,
-  and the runs were cancelled when they could not finish within the remaining credit (models are only saved at the end).
+* **The US and European datasets don't cover these cities.** Three building datasets from the US and Europe contain
+  nothing like dense Chinese blocks or Sudanese compounds.
+* **Even Vegas loses most of its recall.** US suburbs should look familiar, so this is probably SN2's tighter labelling
+  style.
+* **Zero-shot SAM 3 is twice as good on unseen cities** as this supervised model.
 
-## Layout
+Per-angle and per-region numbers are in `results/transfer/{sn2only,generalist_geo}_convnextb.json`,
+`results/transfer/sn2only_convnextb_sn6geo.json` and `results/supervised/nosn2_convnextb_20k.json`, produced by
+`jobs/transfer_eval.py`.
+
+## What it took to win in 2017 vs. now
+
+XD_XD's 2017 winning recipe had four parts:
+* a separate U-Net set per city, trained from scratch;
+* 8-band multispectral input;
+* OpenStreetMap layers (buildings, roads, land use, water) rasterised as extra input channels;
+* a three-model ensemble with per-city minimum-area tuning.
+
+In 2026 none of those extras is needed:
+* **One model handles all four cities**, with RGB input, no OSM, no ensemble and about an hour of training.
+* **The gain comes from two things:**
+  * an ImageNet-21k/22k-pretrained encoder;
+  * a body/border/contact output with watershed instance separation, which splits touching buildings.
+* **The ablations rule out the other explanations.** Multispectral bands add nothing, post-processing adds +0.005, and a
+  bigger satellite-pretrained ViT is worse.
+* **Zero-shot now reaches 2017's 2nd place.** SAM 3 needs only a text prompt.
+
+## Repository layout
 
 ```
 sn2/metric.py              SpaceNet F1 scorer (+ CSV IO)
 sn2/vlm.py                 HF router client, prompts, box/polygon parsing
-scripts/prepare_dataset.py S3 → 8-bit PNG tiles, labels, splits (train/val/eval_small)
+scripts/prepare_dataset.py S3 → 8-bit PS-RGB PNG tiles, labels, splits (train/val/eval_small), per-city stretch
 scripts/make_shards.py     per-city uint8 .npy shards for fast loading in Jobs
 scripts/eval_vlm.py        zero-shot VLM benchmark (cached raw responses in results/raw/)
 scripts/export_prompts.py  VLM boxes → SAM box prompts
-jobs/sam_eval.py           HF Jobs (GPU): SAM 2.1 AMG / AMG+SigLIP2 / box-prompted SAM
-jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training + tuned watershed + val scoring (--extra sn4,sn6,sn8)
-scripts/prepare_xds.py     other SpaceNet building datasets → 0.3 m RGB sub-tiles, labels, location splits
-jobs/transfer_eval.py      HF Jobs (GPU): cross-dataset scoring per angle band / region
-jobs/sam3_eval.py          HF Jobs (GPU): zero-shot SAM 3 text-prompted segmentation
+scripts/make_figure.py     qualitative figure; scripts/overlay.py: prediction overlays
+scripts/prepare_xds.py     other SpaceNet building datasets → 0.3 m RGB sub-tiles, labels, location-held-out splits
 scripts/check_leakage.py   geographic train/test overlap audit (SN6, SN8)
-jobs/xdxd/                 XD_XD 2017 winner reproduction: Keras-1 → PyTorch shim, data staging, 2017 OSM rebuild
-results/                   JSON results, raw VLM outputs, SAM prompts
+scripts/pp_search.py       post-processing search on saved val probabilities (2-fold CV)
+scripts/band_ablation.py   scores the multispectral runs, paired bootstrap CIs
+jobs/sam_eval.py           HF Jobs (GPU): SAM 2.1 automatic / SigLIP2-filtered / box-prompted
+jobs/sam3_eval.py          HF Jobs (GPU): SAM 3 text-prompted segmentation
+jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training, tuned watershed, val scoring
+                             --extra sn4,sn6,sn8 (generalist), --bands 4,2,1,6 (multispectral), --pp (fixed thresholds)
+jobs/transfer_eval.py      HF Jobs (GPU): cross-dataset scoring per angle band / region
+jobs/prep_ms.py            HF Jobs (CPU): 8-band PS-MS → uint8 shards aligned with the RGB shards
+jobs/xdxd/                 XD_XD 2017 reproduction: Keras-1 → PyTorch shim, data staging, 2017 OSM rebuild, run script
+results/                   JSON results per section (vlm_*, sam/, sam3/, supervised/, transfer/, xdxd/), raw VLM outputs
 ```
 
-Data and job outputs live on the Hub (private): dataset `Rootkit29/spacenet2-speedrun` (tiles, labels, splits, shards)
-and bucket `Rootkit29/sn2-runs` (checkpoints, predictions). Jobs mount both as volumes, so no token is needed inside the job:
+Data and job outputs live on the Hub (private):
+* **Dataset** `Rootkit29/spacenet2-speedrun`: tiles, labels, splits, RGB shards, other-dataset tiles and code.
+* **Bucket** `Rootkit29/sn2-runs`: checkpoints, val probabilities and predictions, multispectral shards, XD_XD outputs
+  and the rebuilt 2017 OSM layers.
+
+Jobs mount both as volumes, so no token is needed inside a job. Typical commands:
 
 ```bash
-hf jobs uv run --flavor a100-large --timeout 5h -d \
-  -v hf://datasets/Rootkit29/spacenet2-speedrun:/sn2 -v hf://buckets/Rootkit29/sn2-runs:/out \
-  jobs/train_seg.py --run effv2m_unet_20k --steps 20000 --bs 12 --crop 512
-hf jobs uv run --flavor a100-large --timeout 90m -d \
-  -v hf://datasets/Rootkit29/spacenet2-speedrun:/sn2 -v hf://buckets/Rootkit29/sn2-runs:/out \
-  jobs/sam_eval.py --variants amg_all,amg_siglip,box:gt,box:gemma4_26b_g1
+M="-v hf://datasets/Rootkit29/spacenet2-speedrun:/sn2 -v hf://buckets/Rootkit29/sn2-runs:/out"
+ENC=tu-convnext_base.fb_in22k_ft_in1k
+# supervised RGB model (0.755)
+hf jobs uv run --flavor a100-large --timeout 3h -d $M jobs/train_seg.py --run convnextb_unet_20k \
+  --encoder $ENC --steps 20000 --bs 12 --crop 512 --lr 2e-4
+# generalist (SN2 + SN4/SN6/SN8); no-SN2 model: --extra_frac 1.0 --pp '{"t_mask":0.3,"t_seed":0.8,"min_seed":30}'
+hf jobs uv run --flavor a100-large --timeout 3h -d $M jobs/train_seg.py --run generalist_geo_convnextb_20k \
+  --encoder $ENC --steps 20000 --bs 12 --crop 512 --lr 2e-4 --extra sn4,sn6,sn8 --extra_frac 0.6
+# multispectral: build shards once, then pick bands (RGB first)
+hf jobs uv run --flavor cpu-performance --timeout 90m -d $M jobs/prep_ms.py
+hf jobs uv run --flavor a100-large --timeout 2h -d $M jobs/train_seg.py --run ms8_convnextb_20k \
+  --encoder $ENC --steps 20000 --bs 12 --crop 512 --lr 2e-4 --bands 4,2,1,0,3,5,6,7
+# zero-shot SAM 3 (weights copied to the bucket; gated on the Hub)
+hf jobs uv run --flavor a100-large --timeout 2h -d $M jobs/sam3_eval.py --split val --prompts building --grids 1
+# cross-dataset transfer
+hf jobs uv run --flavor a100-large --timeout 2h -d $M jobs/transfer_eval.py --tag generalist_geo_convnextb \
+  --models /out/generalist_geo_convnextb_20k/model.pt=$ENC --datasets sn4,sn6,sn7,sn8
+# XD_XD 2017 reproduction, one city per job (Vegas/Shanghai need > 46 GB RAM)
+hf jobs run --flavor a10g-large --timeout 6h -d $M python:3.11-bookworm bash /sn2/xdxd/run_xdxd.sh AOI_3_Paris
+# local, no GPU
+python scripts/pp_search.py --probs val_probs_u8.npz --out results/supervised/pp_search_convnextb.json
+python scripts/band_ablation.py <dir with val_predictions csvs> results/supervised/band_ablation.json
 ```
 
-## Compute & cost
+## Compute and cost
 
-Everything ran on Hugging Face: Inference Providers for VLMs (~$0.70 total) and HF Jobs (1×A100-80GB, $2.50/h) for SAM and
-training (~2.8 GPU-hours incl. a smoke test and a billing-interrupted SAM run, ≈ $7). The generalization study
-(data prep, generalist training incl. a cancelled run with SN1, two transfer evals) added ≈ $14. The second phase
-(geo-split generalist, DINOv3, SAM 3, the 2017 OSM rebuild on a CPU job and the partial XD_XD reproduction) used roughly
-another $20–25; the no-SN2 run and the XD_XD runs (including the cancelled Vegas/Shanghai attempts) about $24 more; the multispectral ablation about $9.
+These are approximate, from job durations × list price. Every job ran on Hugging Face:
 
-## Ideas not tried (yet)
+| Work | Approx. cost |
+|---|---|
+| VLM benchmark (Inference Providers) | $0.70 |
+| SAM 2.1 runs + first supervised models (A100, $2.50/h; incl. a smoke test and a billing-interrupted run) | $7 |
+| Generalisation study: data prep, generalist (incl. a cancelled run with SN1), transfer evals | $14 |
+| Geo-split SN6 + retrained generalist, DINOv3, SAM 3, 2017 OSM rebuild (CPU job) | $20–25 |
+| No-SN2 model; XD_XD reproduction (incl. failed environment attempts and cancelled Vegas/Shanghai runs) | $24 |
+| Multispectral ablation (shard prep + 3 training runs) | $9 |
+| **Total** | **≈ $75–80** |
 
-* Finish XD_XD for Vegas and Shanghai (high-RAM GPU, ~6 h each; save models per stage first).
-* Fine-tune SAM 3 on the pooled SpaceNet data, combining its open-world recognition with SpaceNet label style.
-* Larger crops / longer schedules, more ensemble members, multi-scale TTA.
-* Fine-tuning SAM 3 on SpaceNet; using the supervised model's boxes as SAM prompts.
+The headline result itself, the 0.755 model, costs about $2.20 of GPU time.
+
+## Limitations and open questions
+
+* **`val` is not the official test set.** Use the XD_XD rerun rows for exact like-for-like comparison.
+* **The XD_XD rerun covers only Paris and Khartoum.** Finishing Vegas and Shanghai needs a high-RAM GPU for about 6 h per
+  city, and checkpoints saved per stage first.
+* **Most supervised numbers are single training runs.** Differences under about 0.005 are within noise.
+* **Ideas not tried:**
+  * Multi-scale test-time augmentation.
+  * Seed ensembles.
+  * Longer schedules on larger crops.
+  * Fine-tuning SAM 3 on pooled SpaceNet data, to combine its open-world recognition with SpaceNet's labelling style.
+  * Using the supervised model's boxes as SAM prompts.

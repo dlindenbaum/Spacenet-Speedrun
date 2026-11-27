@@ -120,6 +120,12 @@ The satellite-pretrained DINOv3 backbone is **worse** than ImageNet ConvNeXt-B h
 2.4× the training time: at 16 px patches its features are coarse for 3–15 m buildings, and the conv stem/decoder has to
 recover the boundary detail. Satellite pretraining does not replace a convolutional, high-resolution encoder for footprints.
 
+**Post-processing is saturated.** `scripts/pp_search.py` re-runs the watershed on the saved val probabilities over
+36 threshold settings × polygon dilation (0–1.5 px) × minimum area (20–100 px), with 2-fold cross-validation over `val`
+(choose on one half, score on the other). Best honest gain: **+0.005** (0.7555 → 0.7607 with per-city settings;
+0.7575 with one global setting). The in-sample optimum is only 0.761, and the chosen settings differ between folds, so
+the remaining gap is in the probabilities themselves, not the polygon extraction (`results/supervised/pp_search_convnextb.json`).
+
 Biggest gains are in the hard cities (Shanghai +0.11, Khartoum +0.07, Paris +0.06); Vegas was already near saturation in 2017.
 Caveat: our `val` is a held-out slice of the public training AOIs, not the (unreleased) official test set, so numbers are
 comparable but not identical to the leaderboard. Precision/recall per city are in `results/supervised/*.json`.

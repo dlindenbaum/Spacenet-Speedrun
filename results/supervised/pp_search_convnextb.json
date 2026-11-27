@@ -1,0 +1,351 @@
+{
+ "baseline_tune_split_pp": {
+  "overall": 0.7555,
+  "per_city": {
+   "AOI_2_Vegas": 0.8926,
+   "AOI_3_Paris": 0.8073,
+   "AOI_4_Shanghai": 0.7094,
+   "AOI_5_Khartoum": 0.6128
+  },
+  "picks": [
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    }
+   },
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.7,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    }
+   }
+  ]
+ },
+ "global_ws_only": {
+  "overall": 0.7575,
+  "per_city": {
+   "AOI_2_Vegas": 0.8906,
+   "AOI_3_Paris": 0.8121,
+   "AOI_4_Shanghai": 0.7128,
+   "AOI_5_Khartoum": 0.6143
+  },
+  "picks": [
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 30
+     },
+     "dil": 0.0,
+     "min_area": 20
+    }
+   },
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.3,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.3,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.3,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.0,
+     "min_area": 20
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.3,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.0,
+     "min_area": 20
+    }
+   }
+  ]
+ },
+ "global_ws_dil_area": {
+  "overall": 0.7588,
+  "per_city": {
+   "AOI_2_Vegas": 0.892,
+   "AOI_3_Paris": 0.8156,
+   "AOI_4_Shanghai": 0.7126,
+   "AOI_5_Khartoum": 0.6148
+  },
+  "picks": [
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.6,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 100
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.6,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 100
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.6,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 100
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.6,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 100
+    }
+   },
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 20
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 20
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 20
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 20
+    }
+   }
+  ]
+ },
+ "per_city_ws_dil_area": {
+  "overall": 0.7607,
+  "per_city": {
+   "AOI_2_Vegas": 0.8918,
+   "AOI_3_Paris": 0.8148,
+   "AOI_4_Shanghai": 0.7161,
+   "AOI_5_Khartoum": 0.62
+  },
+  "picks": [
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.5,
+      "t_seed": 0.6,
+      "min_seed": 15
+     },
+     "dil": 0.5,
+     "min_area": 60
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.6,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 20
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 100
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.4,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.0,
+     "min_area": 20
+    }
+   },
+   {
+    "AOI_2_Vegas": {
+     "ws": {
+      "t_mask": 0.5,
+      "t_seed": 0.8,
+      "min_seed": 30
+     },
+     "dil": 1.0,
+     "min_area": 100
+    },
+    "AOI_3_Paris": {
+     "ws": {
+      "t_mask": 0.3,
+      "t_seed": 0.8,
+      "min_seed": 15
+     },
+     "dil": 0.0,
+     "min_area": 100
+    },
+    "AOI_4_Shanghai": {
+     "ws": {
+      "t_mask": 0.5,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.5,
+     "min_area": 20
+    },
+    "AOI_5_Khartoum": {
+     "ws": {
+      "t_mask": 0.5,
+      "t_seed": 0.8,
+      "min_seed": 60
+     },
+     "dil": 0.0,
+     "min_area": 100
+    }
+   }
+  ]
+ },
+ "best_full_val_in_sample": 0.7613294990704771
+}

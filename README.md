@@ -130,6 +130,33 @@ Biggest gains are in the hard cities (Shanghai +0.11, Khartoum +0.07, Paris +0.0
 Caveat: our `val` is a held-out slice of the public training AOIs, not the (unreleased) official test set, so numbers are
 comparable but not identical to the leaderboard. Precision/recall per city are in `results/supervised/*.json`.
 
+### Do the 8 multispectral bands matter? No.
+
+XD_XD used all 8 WorldView-3 bands. To test whether they help a modern model, the 8-band pansharpened product (PS-MS, 0.3 m)
+was converted with the same per-city 1–99 % stretch as our RGB tiles (`jobs/prep_ms.py`), and the ConvNeXt-B recipe was
+retrained three times, changing only the input bands (`train_seg.py --bands`). Extra bands enter through the first conv
+with **zero-initialised** filters, so each run starts as the RGB model and only changes if the bands carry signal.
+
+| Input (all from PS-MS unless noted) | Vegas | Paris | Shanghai | Khartoum | **Overall** | Δ vs MS-RGB, 95 % CI |
+|---|---|---|---|---|---|---|
+| PS-RGB product (the 0.755 model) | 0.892 | 0.807 | 0.709 | 0.611 | 0.755 | −0.002 … +0.009 |
+| MS red/green/blue (bands 5,3,2) | 0.899 | 0.796 | 0.705 | 0.605 | 0.752 | – |
+| MS RGB + NIR1 | 0.896 | 0.802 | 0.709 | 0.595 | 0.750 | −0.007 … +0.004 |
+| **MS all 8 bands** (+ coastal, yellow, red-edge, NIR2) | 0.893 | 0.799 | 0.709 | 0.608 | 0.752 | −0.004 … +0.006 |
+
+CI: paired bootstrap over val tiles, resampled within each city (`scripts/band_ablation.py`, `results/supervised/band_ablation.json`).
+
+* **No band combination moves the score beyond run-to-run noise** (all differences ≤ 0.004, every CI contains 0),
+  overall or in any city. NIR does not help even in Khartoum, where bare soil vs. roof vs. vegetation was the
+  expected win. Building footprints at 0.3 m are a *spatial* problem (edges, shape, shadow); colour from RGB is enough.
+* Spectral indices (NDVI etc.) were not run separately: they are fixed functions of red and NIR, and the network with NIR
+  available gained nothing, so a precomputed index is very unlikely to.
+* PAN is not a separate input: both pansharpened products are already built at PAN's 0.3 m resolution.
+* XD_XD's gains from multispectral in 2017 likely came from his small U-Net trained from scratch; an ImageNet-pretrained
+  encoder already extracts what it needs from RGB.
+* Data note: SpaceNet's PS-MS files are blank (all zeros) for 10 Vegas tiles whose RGB files are fine (2 of them in val);
+  excluding them changes no score by more than 0.0001.
+
 ### How general is it? Other SpaceNet building datasets
 
 All other SpaceNet building datasets are resampled to SN2's 0.3 m GSD, converted to 8-bit RGB, and cut into sub-tiles of at most 1,600 px
@@ -252,11 +279,11 @@ Everything ran on Hugging Face: Inference Providers for VLMs (~$0.70 total) and 
 training (~2.8 GPU-hours incl. a smoke test and a billing-interrupted SAM run, ≈ $7). The generalization study
 (data prep, generalist training incl. a cancelled run with SN1, two transfer evals) added ≈ $14. The second phase
 (geo-split generalist, DINOv3, SAM 3, the 2017 OSM rebuild on a CPU job and the partial XD_XD reproduction) used roughly
-another $20–25; the no-SN2 run and the XD_XD runs (including the cancelled Vegas/Shanghai attempts) about $24 more.
+another $20–25; the no-SN2 run and the XD_XD runs (including the cancelled Vegas/Shanghai attempts) about $24 more; the multispectral ablation about $9.
 
 ## Ideas not tried (yet)
 
 * Finish XD_XD for Vegas and Shanghai (high-RAM GPU, ~6 h each; save models per stage first).
 * Fine-tune SAM 3 on the pooled SpaceNet data, combining its open-world recognition with SpaceNet label style.
-* 8-band multispectral input, larger crops / longer schedules, more ensemble members, multi-scale TTA.
+* Larger crops / longer schedules, more ensemble members, multi-scale TTA.
 * Fine-tuning SAM 3 on SpaceNet; using the supervised model's boxes as SAM prompts.

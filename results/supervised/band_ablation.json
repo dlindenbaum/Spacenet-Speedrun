@@ -1,0 +1,115 @@
+{
+ "n_val": 1037,
+ "blank_ms_tiles_in_val": [
+  "AOI_2_Vegas_img1975",
+  "AOI_2_Vegas_img4056"
+ ],
+ "all_val": {
+  "PS-RGB (original 0.755 model)": {
+   "overall": 0.7547,
+   "per_city": {
+    "AOI_2_Vegas": 0.8921,
+    "AOI_3_Paris": 0.8073,
+    "AOI_4_Shanghai": 0.7089,
+    "AOI_5_Khartoum": 0.6107
+   },
+   "diff_vs_ms_rgb_95ci": [
+    -0.0023,
+    0.0086
+   ]
+  },
+  "MS-RGB (bands 4,2,1)": {
+   "overall": 0.7515,
+   "per_city": {
+    "AOI_2_Vegas": 0.8991,
+    "AOI_3_Paris": 0.7963,
+    "AOI_4_Shanghai": 0.7054,
+    "AOI_5_Khartoum": 0.605
+   },
+   "diff_vs_ms_rgb_95ci": [
+    0.0,
+    0.0
+   ]
+  },
+  "MS-RGB + NIR1": {
+   "overall": 0.7504,
+   "per_city": {
+    "AOI_2_Vegas": 0.8961,
+    "AOI_3_Paris": 0.802,
+    "AOI_4_Shanghai": 0.709,
+    "AOI_5_Khartoum": 0.5947
+   },
+   "diff_vs_ms_rgb_95ci": [
+    -0.007,
+    0.0045
+   ]
+  },
+  "MS all 8 bands": {
+   "overall": 0.7523,
+   "per_city": {
+    "AOI_2_Vegas": 0.8927,
+    "AOI_3_Paris": 0.7989,
+    "AOI_4_Shanghai": 0.7093,
+    "AOI_5_Khartoum": 0.6085
+   },
+   "diff_vs_ms_rgb_95ci": [
+    -0.0042,
+    0.0058
+   ]
+  }
+ },
+ "excl_blank_ms": {
+  "PS-RGB (original 0.755 model)": {
+   "overall": 0.7548,
+   "per_city": {
+    "AOI_2_Vegas": 0.8923,
+    "AOI_3_Paris": 0.8073,
+    "AOI_4_Shanghai": 0.7089,
+    "AOI_5_Khartoum": 0.6107
+   },
+   "diff_vs_ms_rgb_95ci": [
+    -0.0017,
+    0.009
+   ]
+  },
+  "MS-RGB (bands 4,2,1)": {
+   "overall": 0.7515,
+   "per_city": {
+    "AOI_2_Vegas": 0.8991,
+    "AOI_3_Paris": 0.7963,
+    "AOI_4_Shanghai": 0.7054,
+    "AOI_5_Khartoum": 0.605
+   },
+   "diff_vs_ms_rgb_95ci": [
+    0.0,
+    0.0
+   ]
+  },
+  "MS-RGB + NIR1": {
+   "overall": 0.7504,
+   "per_city": {
+    "AOI_2_Vegas": 0.8961,
+    "AOI_3_Paris": 0.802,
+    "AOI_4_Shanghai": 0.709,
+    "AOI_5_Khartoum": 0.5947
+   },
+   "diff_vs_ms_rgb_95ci": [
+    -0.0069,
+    0.0044
+   ]
+  },
+  "MS all 8 bands": {
+   "overall": 0.7523,
+   "per_city": {
+    "AOI_2_Vegas": 0.8927,
+    "AOI_3_Paris": 0.7989,
+    "AOI_4_Shanghai": 0.7093,
+    "AOI_5_Khartoum": 0.6085
+   },
+   "diff_vs_ms_rgb_95ci": [
+    -0.0042,
+    0.006
+   ]
+  }
+ }
+}

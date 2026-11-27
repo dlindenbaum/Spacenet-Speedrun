@@ -173,27 +173,41 @@ Takeaways:
   Sensor resolution, not the model, is the limit.
 * Reference scores from SN8 are not comparable: it was scored with a different, flood-attribute metric.
 
+**Can it generalise to cities it has never seen?** The same recipe trained only on SN4 + SN6 + SN8 (no SN2 at all; fixed
+post-processing, so no SN2 labels used anywhere) scores **0.325** on SN2 val: Vegas 0.497, Paris 0.569, Shanghai 0.184,
+Khartoum 0.051 (precision 0.5–0.7, recall 0.03–0.47; `results/supervised/nosn2_convnextb_20k.json`). Three building
+datasets from the US and Europe do not cover dense Chinese blocks or Sudanese compounds, and even US suburbs lose most
+recall to SN2's tighter labelling. **Zero-shot SAM 3 (0.642) is twice as good on unseen cities** as this supervised model.
+
 Per-angle and per-region numbers: `results/transfer/{sn2only,generalist_geo}_convnextb.json` and
 `results/transfer/sn2only_convnextb_sn6geo.json`; run with `jobs/transfer_eval.py`.
 
-### Reproducing XD_XD's 2017 winner on our split (in progress, not finished)
+### Reproducing XD_XD's 2017 winner on our split (Paris and Khartoum)
 
 To get a strict 1:1 comparison, `jobs/xdxd/` runs XD_XD's original code
 ([BuildingDetectors_Round2/1-XD_XD](https://github.com/SpaceNetChallenge/BuildingDetectors_Round2)) **unmodified** on our
-train/val split. His SN2 weights were never released, so it has to be retrained. Only the 2017 environment is replaced:
+train/val split: per-city v9s + v13 + v16 (OSM) U-Nets, the v17 ensemble, his own thresholds and min-area tuning.
+His SN2 weights were never released, so it is retrained. Only the 2017 environment is replaced:
 * Keras 1.1 / Theano 0.9 / CUDA 8 cannot run on current GPUs. `jobs/xdxd/shim/keras` re-implements the Keras-1 API
   that his code uses (layers, `fit`/`fit_generator`, checkpoints, early stopping) on PyTorch.
 * 2017 library behaviour: numpy 1.23, pandas 1.5, shapely 1.8 (patched so empty polygons behave like shapely 1.5),
-  click 6.7, `gdal` replaced by a rasterio shim.
+  click 6.7, `gdal` replaced by a rasterio shim. CUDA must be initialised before shapely 1.8 is imported, or torch segfaults.
 * His OpenStreetMap layers came from Mapzen Metro Extracts, which went offline in 2018. `jobs/xdxd/osm_2017.py` rebuilds them
   from the **2017-05-01 OSM planet** (61 GB) in the same imposm shapefile layout.
-* One environment bug cost several runs: CUDA initialisation segfaults if shapely 1.8 (bundled GEOS) is imported first,
-  so the shim initialises CUDA before anything else.
 
-Status: the full pipeline ran end to end in a small CPU smoke test, and on GPU the first two models trained normally
-(Paris v9s early-stopped after 11 epochs and v13 was training; Khartoum v9s reached epoch 38). The runs then stopped when the
-pre-paid HF Jobs credit ran out. Vegas and Shanghai also need more than the 46 GB of RAM on an A10G for preprocessing
-(they passed on the 142 GB A100). Each city is an independent job of roughly 4–8 GPU-hours.
+Scored with our metric on our `val` tiles (`results/xdxd/`):
+
+| City | XD_XD retrained, our val (P / R) | XD_XD 2017 leaderboard | **ConvNeXt-B U-Net** | SAM 3 zero-shot |
+|---|---|---|---|---|
+| Paris (105 tiles) | 0.697 (0.77 / 0.64) | 0.745 | **0.807** | 0.678 |
+| Khartoum (87 tiles) | 0.512 (0.62 / 0.44) | 0.544 | **0.611** | 0.497 |
+
+* The retrained solution lands 0.03–0.05 below its leaderboard scores, which is plausible for a different test set and a
+  rebuilt OSM/framework stack. It is a faithful reproduction, not a tuned one.
+* **On identical tiles the 2026 model is ~0.10 ahead in both cities**, a slightly larger margin than against the leaderboard.
+* SAM 3 with no training is within 0.02 of the retrained 2017 winner in both cities.
+* Vegas and Shanghai were not completed: with batch size 2, v13/v16 take ~2.5–3 h each per city even on an A100,
+  and the runs were cancelled when they could not finish within the remaining credit (models are only saved at the end).
 
 ## Layout
 
@@ -232,11 +246,11 @@ Everything ran on Hugging Face: Inference Providers for VLMs (~$0.70 total) and 
 training (~2.8 GPU-hours incl. a smoke test and a billing-interrupted SAM run, ≈ $7). The generalization study
 (data prep, generalist training incl. a cancelled run with SN1, two transfer evals) added ≈ $14. The second phase
 (geo-split generalist, DINOv3, SAM 3, the 2017 OSM rebuild on a CPU job and the partial XD_XD reproduction) used roughly
-another $20–25, until the pre-paid credit ran out.
+another $20–25; the no-SN2 run and the XD_XD runs (including the cancelled Vegas/Shanghai attempts) about $24 more.
 
 ## Ideas not tried (yet)
 
-* Finish the XD_XD reproduction (needs credit; Vegas/Shanghai on a high-RAM GPU).
-* Train on SN4 + SN6 + SN8 only and score on SN2, to test generalisation to unseen cities.
+* Finish XD_XD for Vegas and Shanghai (high-RAM GPU, ~6 h each; save models per stage first).
+* Fine-tune SAM 3 on the pooled SpaceNet data, combining its open-world recognition with SpaceNet label style.
 * 8-band multispectral input, larger crops / longer schedules, more ensemble members, multi-scale TTA.
 * Fine-tuning SAM 3 on SpaceNet; using the supervised model's boxes as SAM prompts.

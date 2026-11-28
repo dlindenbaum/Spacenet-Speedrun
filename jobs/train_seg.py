@@ -282,6 +282,9 @@ def main():
     ap.add_argument("--eval_only", action="store_true")
     ap.add_argument("--extra", default="", help="comma list of xds datasets whose train split is added (generalist)")
     ap.add_argument("--extra_frac", type=float, default=0.6, help="sampling share of extra datasets")
+    ap.add_argument("--n_train", type=int, default=0, help="learning curve: train on a random subset of N chips, "
+                    "stratified by city (proportional), drawn with --subset_seed")
+    ap.add_argument("--subset_seed", type=int, default=0)
     ap.add_argument("--pp", default="", help='fixed post-processing JSON, e.g. {"t_mask":0.3,...}; skips SN2 tune')
     ap.add_argument("--bands", default="", help="multispectral input: comma list of PS-MS band indices, RGB first "
                     "(WV-3: 0 coastal 1 blue 2 green 3 yellow 4 red 5 red-edge 6 NIR1 7 NIR2), e.g. 4,2,1,6")
@@ -302,6 +305,15 @@ def main():
     tune_set = set(tune)
     train_ids = [i for i in splits["train"] if i not in tune_set]
     val_ids = splits["val"]
+    if args.n_train:
+        rng = np.random.default_rng(args.subset_seed)
+        by_city = {a: [i for i in train_ids if i.startswith(a + "_")] for a in AOIS}
+        sub = []
+        for a, ids in by_city.items():
+            k = max(1, round(args.n_train * len(ids) / len(train_ids)))
+            sub += [ids[j] for j in rng.choice(len(ids), size=min(k, len(ids)), replace=False)]
+        train_ids = sorted(sub)
+        log("subset", args.n_train, "seed", args.subset_seed, {a: sum(i.startswith(a) for i in train_ids) for a in AOIS})
     log("train", len(train_ids), "tune", len(tune), "val", len(val_ids))
 
     # read the per-AOI uint8 shards (a few large sequential reads; fast on the mounted dataset)
@@ -452,6 +464,8 @@ def main():
     res["encoder"] = args.ensemble or args.encoder
     res["arch"] = args.arch
     res["steps"] = args.steps
+    res["n_train"] = len(train_ids)
+    res["subset_seed"] = args.subset_seed if args.n_train else None
     res["wall_minutes"] = round((time.time() - t_start) / 60, 1)
     log("VAL", json.dumps(res))
     (out_dir / "val_results.json").write_text(json.dumps(res, indent=1))

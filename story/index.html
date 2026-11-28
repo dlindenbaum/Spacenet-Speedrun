@@ -178,8 +178,22 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
       <p>The gain comes from a pretrained convolutional encoder plus an output that separates touching buildings. Colour bands, OpenStreetMap layers and ensembles add nothing measurable.</p>
     </section>
 
+    <section class="chapter" data-ch="labels">
+      <div class="kicker"><b>06</b> How many labels</div>
+      <h2>About 400 labelled chips beat the 2017 winner</h2>
+      <p>The same model was retrained on random subsets of the 9,041 labelled chips. The city mix and the 20k-step training budget stayed the same, and every run was scored on the full validation set.</p>
+      <div class="chart" id="chartD"></div>
+      <details class="table"><summary>Show as table</summary><div class="tablewrap" id="tableD"></div></details>
+      <ul class="facts">
+        <li><span class="v">~150</span><span>chips (about 3,000 buildings) to beat zero-shot SAM 3</span></li>
+        <li><span class="v">~400</span><span>chips (about 8,000 buildings, 4 % of the labels) to beat <strong>XD_XD's 2017 winning score</strong>, which used all of them</span></li>
+        <li><span class="v">~2,000</span><span>chips for 97 % of the full result. Beyond that, each doubling adds about 0.01.</span></li>
+      </ul>
+      <p>Vegas is nearly saturated at 1,000 chips. Shanghai is still improving at 9,041, so extra labelling pays off most in dense, irregular cities.</p>
+    </section>
+
     <section class="chapter" data-ch="general">
-      <div class="kicker"><b>06</b> How general</div>
+      <div class="kicker"><b>07</b> How general</div>
       <h2>Training on more SpaceNets makes one model general</h2>
       <p>Adding the SN4 (Atlanta, 27 look angles), SN6 (Rotterdam) and SN8 (Louisiana, Germany) training sets costs 0.017 on SN2 and roughly doubles F1 elsewhere. Test areas are held out by location, and SN6 was re-split geographically after an overlap audit caught leakage.</p>
       <div class="chart" id="chartC"></div>
@@ -188,7 +202,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     </section>
 
     <section class="chapter" data-ch="overture">
-      <div class="kicker"><b>07</b> Open building data</div>
+      <div class="kicker"><b>08</b> Open building data</div>
       <h2>Overture matches SpaceNet in Vegas, and only there</h2>
       <p>Overture Maps merges OpenStreetMap, Microsoft ML Buildings and Google Open Buildings. In Vegas it agrees with SpaceNet's labels at <strong>F1 0.80</strong>, so here it is a usable second reference.</p>
       <p>Elsewhere it scores 0.10–0.19 because the conventions differ. Paris footprints are offset from the rooftops in off-nadir imagery. Shanghai's dataset draws whole terraces as one shape. Khartoum's OpenStreetMap maps walled compounds instead of the buildings inside.</p>
@@ -196,7 +210,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     </section>
 
     <section class="chapter" data-ch="strip">
-      <div class="kicker"><b>08</b> The whole strip</div>
+      <div class="kicker"><b>09</b> The whole strip</div>
       <h2>157,339 buildings, seamless, in 30 minutes</h2>
       <p>The model ran over the entire strip, about 14 × 16 km, read straight from SpaceNet's public cloud-optimised GeoTIFFs. It worked in 1,300 px windows and kept each building only where its centre falls in the window's core. That includes <strong>39,595 buildings outside any SpaceNet chip</strong>.</p>
       <ul class="facts">
@@ -208,7 +222,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     </section>
 
     <section class="chapter" data-ch="cost">
-      <div class="kicker"><b>09</b> Time and cost</div>
+      <div class="kicker"><b>10</b> Time and cost</div>
       <h2>What the whole project cost</h2>
       <div class="stats">
         <div class="stat"><div class="n">$0.97</div><div class="l">GPU compute to map the full Vegas strip, 35 min billed</div></div>
@@ -221,7 +235,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     </section>
 
     <section class="chapter" data-ch="explore">
-      <div class="kicker"><b>10</b> Explore</div>
+      <div class="kicker"><b>11</b> Explore</div>
       <h2>Your turn</h2>
       <p>Pan and zoom freely. Imagery sharpens to 1.2 m as you zoom in, and two areas carry the full 0.3 m. Footprint layers load chunk by chunk for the area in view. Hover any building for its details.</p>
       <div class="cta">
@@ -298,6 +312,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     supervised: { view: "val_tile",   layers: { chips: false, gt: true, overture: false, model: true }, color: "conf" },
     xdxd:       { view: "val_tile",   layers: { chips: false, gt: true, overture: false, model: true }, color: "single" },
     ablations:  { view: "val_tile",   layers: { chips: false, gt: false, overture: false, model: true }, color: "conf" },
+    labels:     { view: "val_tile",   layers: { chips: false, gt: true, overture: false, model: true }, color: "single" },
     general:    { view: "general",    layers: { chips: true, gt: false, overture: false, model: true }, color: "single" },
     overture:   { view: "val_tile",   layers: { chips: false, gt: true, overture: true, model: false } },
     strip:      { view: "outside_nw", layers: { chips: true, gt: false, overture: false, model: true }, color: "split" },
@@ -612,6 +627,33 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     const note = document.createElement("div"); note.className = "note"; note.textContent = "Labelled value: the generalist. Test areas held out by location in every dataset.";
     host.appendChild(note);
     table(document.getElementById("tableC"), ["Test set", "SN2 only", "Generalist"], Cd.map(([n, a, b]) => [n, fmt(a), fmt(b)]));
+  })();
+
+  // D: label-budget learning curve, log x
+  (function () {
+    const host = document.getElementById("chartD");
+    const D = [[100, 0.610], [300, 0.688], [1000, 0.718], [3000, 0.740], [9041, 0.755]];
+    legend(host, [[C.s1, "ConvNeXt-B U-Net, overall F1"]]);
+    const w = 420, h = 190, x0 = 34, x1 = w - 20, y0 = 10, y1 = h - 26, lo = 0.55, hi = 0.80;
+    const X = (n) => x0 + (Math.log10(n) - 2) / (Math.log10(9041) - 2) * (x1 - x0);
+    const Y = (v) => y1 - (v - lo) / (hi - lo) * (y1 - y0);
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "F1 against number of labelled chips" }, host);
+    const g = el("g", { class: "grid" }, svg);
+    [0.6, 0.65, 0.7, 0.75, 0.8].forEach((v) => { el("line", { x1: x0, x2: x1, y1: Y(v), y2: Y(v) }, g); el("text", { x: x0 - 6, y: Y(v) + 4, "text-anchor": "end" }, g).textContent = v.toFixed(2); });
+    D.forEach(([n]) => { el("text", { x: X(n), y: y1 + 16, "text-anchor": "middle" }, g).textContent = n.toLocaleString(); });
+    [[0.693, "2017 winner 0.693", "5 4"], [0.642, "SAM 3 0.642", "2 3"]].forEach(([v, lab, dash]) => {
+      el("line", { x1: x0, x2: x1, y1: Y(v), y2: Y(v), stroke: "var(--ink-3)", "stroke-dasharray": dash, "stroke-width": 1 }, svg);
+      el("text", { x: x1, y: Y(v) - 4, "text-anchor": "end" }, svg).textContent = lab;
+    });
+    el("path", { d: D.map(([n, v], i) => `${i ? "L" : "M"}${X(n)},${Y(v)}`).join(" "), fill: "none", stroke: C.s1, "stroke-width": 2 }, svg);
+    D.forEach(([n, v]) => {
+      el("circle", { cx: X(n), cy: Y(v), r: 4.5, fill: C.s1, stroke: "var(--ground)", "stroke-width": 2, "data-tip": `${n.toLocaleString()} labelled chips<br>F1 <span>${fmt(v)}</span>` }, svg);
+      el("text", { x: X(n), y: Y(v) - 9, "text-anchor": "middle", class: "v" }, svg).textContent = v.toFixed(3);
+    });
+    bindTips(svg);
+    const note = document.createElement("div"); note.className = "note"; note.textContent = "Labelled training chips, log scale. 100 and 300 are the mean of two random draws.";
+    host.appendChild(note);
+    table(document.getElementById("tableD"), ["Labelled chips", "Buildings", "F1"], [["100", "~2,100", "0.610"], ["300", "~6,000", "0.688"], ["1,000", "21,178", "0.718"], ["3,000", "61,039", "0.740"], ["9,041 (all)", "189,436", "0.755"]]);
   })();
 })();
 </script>

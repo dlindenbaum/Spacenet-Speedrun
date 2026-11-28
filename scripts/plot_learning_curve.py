@@ -51,9 +51,9 @@ def main():
         ax.annotate(f"{np.mean(summ[n]['overall']):.3f}", (n, np.mean(summ[n]["overall"])), textcoords="offset points",
                     xytext=(0, 9), ha="center", fontsize=9, color="#191919")
     ax.text(ns[-1] * 1.08, y[-1], "Overall", color="#191919", va="center", fontsize=9, weight="bold")
-    for v, lab, ls in ((0.693, "XD_XD, 2017 winner (0.693)", "--"), (0.642, "SAM 3 zero-shot (0.642)", ":")):
-        ax.axhline(v, color="#666", ls=ls, lw=1)
-        ax.text(ns[0], v + 0.006, lab, color="#666", fontsize=8.5)
+    refs = [ax.axhline(v, color="#666", ls=ls, lw=1, label=lab)
+            for v, lab, ls in ((0.693, "XD_XD, 2017 winner (0.693)", "--"), (0.642, "SAM 3 zero-shot (0.642)", ":"))]
+    ax.legend(handles=refs, loc="lower right", frameon=False, fontsize=8.5)
     ax.set_xscale("log")
     ax.set_xticks(ns)
     ax.set_xticklabels([f"{n:,}" for n in ns])

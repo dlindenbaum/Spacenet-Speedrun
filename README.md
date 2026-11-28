@@ -50,7 +50,10 @@ model itself costs $2.26 of GPU time.
 5. **Supervised models need data from the target region.** Pooling SN4/SN6/SN8 into training costs 0.017 on SN2 and
    roughly doubles F1 on those datasets. But a model trained without SN2 scores only 0.325 on the SN2 cities, half of
    zero-shot SAM 3. Planet 4 m imagery (SN7) is out of reach for any 0.3 m model.
-6. **Open building data is a usable reference only where its conventions match.** Overture (Microsoft ML +
+6. **~400 labelled chips are enough to beat the 2017 winner.** That is about 8 k buildings, or 4 % of the training
+   set. Returns diminish after ~1,000 chips; dense cities such as Shanghai keep improving with more labels
+   ([section 6b](#6b-how-many-labelled-chips-does-it-take)).
+7. **Open building data is a usable reference only where its conventions match.** Overture (Microsoft ML +
    OpenStreetMap) matches SpaceNet's Vegas labels at F1 0.80. Against it, our model holds its accuracy on 15 km² of
    unseen strip, with pixel agreement unchanged. In Paris, Shanghai and Khartoum, Overture outlines terraces,
    compounds or footprints rather than SpaceNet-style roofs, so it cannot measure accuracy there.
@@ -244,6 +247,45 @@ To keep it honest, settings are chosen on one half of `val` and scored on the ot
   buildings. Going higher (0.85–0.9) is worse.
 * **The remaining errors are in the probabilities, not the polygon extraction**
   (`results/supervised/pp_search_convnextb.json`).
+
+### 6b. How many labelled chips does it take?
+
+The same ConvNeXt-B recipe was trained on random subsets of the 9,041 labelled training chips
+(`train_seg.py --n_train N --subset_seed s`). Each subset is stratified by city in proportion, so the mix stays fixed.
+* **Training budget:** 20k steps for every run, so only the labels change.
+* **Post-processing:** fixed at the full model's thresholds, so the 480-chip tuning split adds no hidden labels.
+* **Scoring:** the full 1,037-chip validation split.
+* **Repeats:** a second random draw at 100 and 300 chips measures how much the particular subset matters.
+
+![learning curve](results/learning_curve/learning_curve.png)
+
+| Labelled chips | Buildings labelled | Area | Overall F1 | Vegas | Paris | Shanghai | Khartoum |
+|---|---|---|---|---|---|---|---|
+| 100 | ~2.1 k | 3.8 km² | 0.610 (0.622 / 0.599) | 0.832 | 0.656 | 0.538 | 0.415 |
+| 300 | ~6 k | 11 km² | 0.688 (0.688 / 0.687) | 0.862 | 0.729 | 0.619 | 0.540 |
+| 1,000 | 21 k | 38 km² | 0.718 | 0.883 | 0.772 | 0.645 | 0.573 |
+| 3,000 | 61 k | 114 km² | 0.740 | 0.887 | 0.795 | 0.677 | 0.602 |
+| 9,041 (all) | 189 k | 344 km² | **0.755** | 0.892 | 0.807 | 0.709 | 0.611 |
+
+Thresholds, interpolated on the log scale:
+
+| Target | Chips needed | Buildings | Area |
+|---|---|---|---|
+| Beat zero-shot SAM 3 (0.642) | ~150 | ~3 k | ~6 km² |
+| **Beat the 2017 winner (0.693)** | **~400** | ~8 k | ~15 km² |
+| 97 % of the full result (0.733) | ~2,000 | ~42 k | ~76 km² |
+
+The full result needs all 9,041 chips. In other words, a 2026 model trained on 4 % of the SpaceNet 2 labels already
+beats the 2017 winner, who trained on all of them.
+
+* **Returns diminish.** Tripling the labels adds +0.078, then +0.031, then +0.022, then +0.015. Past ~1,000 chips each
+  doubling is worth about 0.01.
+* **Easy cities saturate early.** Vegas is within 0.01 of its final score at 1,000 chips.
+* **Dense, irregular cities keep learning.** Shanghai gains +0.032 from 3,000 to 9,041 chips and is still rising.
+  Khartoum gains less in absolute terms but stays the hardest city. If you are labelling, spend the budget on the hard
+  cities.
+* **Variance is small.** The two random draws differ by 0.023 at 100 chips and by 0.002 at 300.
+* **Cost:** six runs × ~55 min on an A100, about $14 (`results/learning_curve/`).
 
 ### 7. Do the 8 multispectral bands matter? No.
 
@@ -513,6 +555,7 @@ scripts/overture_eval.py   Overture Maps buildings vs SpaceNet labels on val (pe
 scripts/strip_vs_overture.py  model vs Overture on full-strip windows, calibrated on val (object + pixel F1)
 jobs/strip_eval.py         HF Jobs (GPU): model inference on the full WorldView-3 strips, away from all SpaceNet chips
 jobs/strip_footprints.py   HF Jobs (GPU): seamless footprints for a whole strip -> GeoParquet 1.1 (Hilbert-sorted, bbox covering)
+scripts/plot_learning_curve.py label-budget learning curve figure + summary
 scripts/build_story_assets.py  imagery pyramid + chunked vector layers for the story map (story/index.html)
 scripts/footprints_qa.py   QA of a strip footprint product (vs SpaceNet val labels, vs Overture, duplicates)
 scripts/session_costs.py   Claude + Hugging Face cost from the transcript and job records → results/costs.json

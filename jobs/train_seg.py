@@ -281,6 +281,7 @@ def main():
     ap.add_argument("--init_from", default="", help="checkpoint path to fine-tune / eval only")
     ap.add_argument("--eval_only", action="store_true")
     ap.add_argument("--extra", default="", help="comma list of xds datasets whose train split is added (generalist)")
+    ap.add_argument("--xds_root", default="", help="folder holding the xds datasets (default <data>/xds)")
     ap.add_argument("--extra_frac", type=float, default=0.6, help="sampling share of extra datasets")
     ap.add_argument("--n_train", type=int, default=0, help="learning curve: train on a random subset of N chips, "
                     "stratified by city (proportional), drawn with --subset_seed")
@@ -361,7 +362,7 @@ def main():
             extra_ds = args.extra.split(",")
             weights = [(1 - args.extra_frac) / n_sn2] * n_sn2
             for ds in extra_ds:
-                d = root / "xds" / ds
+                d = Path(args.xds_root or root / "xds") / ds
                 lab = json.loads((d / "labels.json").read_text())
                 tids = json.loads((d / "splits.json").read_text()).get("train", [])
 

@@ -38,6 +38,7 @@ def main():
     ap.add_argument("--models", required=True, help="comma list of ckpt_path=encoder (ensemble mean)")
     ap.add_argument("--datasets", default="sn4,sn6,sn7,sn8")
     ap.add_argument("--pp", default='{"t_mask": 0.4, "t_seed": 0.7, "min_seed": 30}')
+    ap.add_argument("--xds_root", default="", help="folder holding the xds datasets (default <data>/xds)")
     ap.add_argument("--tta", type=int, default=1)
     ap.add_argument("--limit", type=int, default=0)
     args = ap.parse_args()
@@ -83,7 +84,7 @@ def main():
     summary = {}
     pool = ThreadPoolExecutor(8)
     for ds in args.datasets.split(","):
-        d = root / "xds" / ds
+        d = Path(args.xds_root or root / "xds") / ds
         labels = json.loads((d / "labels.json").read_text())
         meta = json.loads((d / "meta.json").read_text())
         ids = json.loads((d / "splits.json").read_text())["test"][: args.limit or None]

@@ -1,0 +1,609 @@
+<title>SpaceNet 2 Speedrun</title>
+<link rel="artifact-thumbnail" href="thumb.jpg">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a narrative column scrolls beside a full-height map of the Vegas strip; on phones the map sits above. */
+:root {
+  color-scheme: dark;
+  --ground: #0f1316;      /* page */
+  --panel: #161c20;       /* raised panels */
+  --rule: #26313a;
+  --ink: #e8ecee;
+  --ink-2: #a3afb7;
+  --ink-3: #73808a;
+  --accent: #3fd0ad;      /* our model's footprints: the thread through the story */
+  --s1: #338ced;          /* chart series 1: 2026 supervised */
+  --s2: #e76624;          /* chart series 2: 2017 / baseline */
+  --s3: #00a888;          /* chart series 3: zero-shot */
+  --gt: #f2c230;          /* SpaceNet labels on the map */
+  --ov: #ff7ab6;          /* Overture on the map */
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.82rem; --step-0: 1rem; --step-1: 1.2rem; --step-2: 1.55rem; --step-3: 2.3rem;
+}
+html, body { height: 100%; }
+body { background: var(--ground); color: var(--ink); font: 400 var(--step-0)/1.6 var(--f-body); }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { display: grid; grid-template-columns: minmax(340px, 460px) 1fr; height: 100%; }
+.story { overflow-y: auto; border-right: 1px solid var(--rule); min-width: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 24px; }
+.mapwrap { position: relative; min-width: 0; }
+#map { position: absolute; inset: 0; background: #0b0e10; }
+
+.hero { padding-block: 40px 8px; }
+.eyebrow { font: 500 var(--step--1)/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+h1 { font: 700 var(--step-3)/1.05 var(--f-display); margin: 10px 0 14px; text-wrap: balance; letter-spacing: -.01em; }
+h2 { font: 600 var(--step-2)/1.15 var(--f-display); margin: 0 0 10px; text-wrap: balance; }
+p { margin: 0 0 12px; max-width: 62ch; color: var(--ink-2); }
+p strong, li strong { color: var(--ink); font-weight: 600; }
+.lede { font-size: var(--step-1); line-height: 1.5; color: var(--ink); }
+.chapter { padding-block: 28px 36px; border-top: 1px solid var(--rule); scroll-margin-top: 12px; }
+.chapter .kicker { font: 500 var(--step--1)/1.3 var(--f-mono); color: var(--ink-3); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+.chapter .kicker b { color: var(--accent); font-weight: 500; }
+.chapter.active .kicker::after { content: "● on the map"; margin-left: auto; color: var(--accent); }
+.mapnote { font: 400 var(--step--1)/1.45 var(--f-mono); color: var(--ink-3); margin-top: 10px; }
+.mapnote .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+ul.facts { list-style: none; padding: 0; margin: 8px 0 14px; display: grid; gap: 8px; }
+ul.facts li { display: grid; grid-template-columns: 7.5ch 1fr; gap: 12px; align-items: baseline; color: var(--ink-2); }
+ul.facts .v { font: 500 var(--step-0)/1.2 var(--f-mono); color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0 14px; }
+.stat { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+.stat .n { font: 600 var(--step-2)/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
+.stat .l { font-size: var(--step--1); color: var(--ink-3); line-height: 1.35; }
+.chart { margin: 12px 0 6px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--step--1); color: var(--ink-2); margin-bottom: 6px; }
+.chart .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.chart text { fill: var(--ink-2); font: 400 11px var(--f-body); }
+.chart text.v { fill: var(--ink); font: 500 11px var(--f-mono); }
+.chart .grid line { stroke: var(--rule); }
+.chart .note { font-size: var(--step--1); color: var(--ink-3); margin-top: 4px; }
+details.table { margin: 4px 0 10px; font-size: var(--step--1); color: var(--ink-3); }
+details.table summary { cursor: pointer; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; margin-top: 6px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 3px 10px 3px 0; border-bottom: 1px solid var(--rule); color: var(--ink-2); white-space: nowrap; }
+td.num { text-align: right; font-family: var(--f-mono); color: var(--ink); }
+.cta { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+button, .btn { font: 500 var(--step--1)/1 var(--f-body); color: var(--ink); background: var(--panel); border: 1px solid var(--rule);
+  border-radius: 5px; padding: 8px 11px; cursor: pointer; }
+button:hover { border-color: var(--ink-3); }
+button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.foot { padding-block: 24px 48px; color: var(--ink-3); font-size: var(--step--1); border-top: 1px solid var(--rule); }
+code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
+
+/* map overlays */
+.panel { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  width: 236px; background: color-mix(in oklab, var(--panel) 92%, transparent); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 10px 12px; font-size: var(--step--1); backdrop-filter: blur(6px); }
+.panel h3 { font: 600 var(--step--1)/1.2 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 8px;
+  display: flex; justify-content: space-between; align-items: center; }
+.panel h3 button { padding: 3px 7px; }
+.panel label { display: grid; grid-template-columns: 16px 12px 1fr auto; gap: 7px; align-items: center; padding: 3px 0; color: var(--ink-2); cursor: pointer; }
+.panel label .sw { width: 12px; height: 12px; border-radius: 2px; }
+.panel label .cnt { font: 400 10px var(--f-mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.panel .row { display: flex; gap: 6px; align-items: center; margin-top: 8px; color: var(--ink-2); }
+.panel select { font: inherit; color: var(--ink); background: var(--ground); border: 1px solid var(--rule); border-radius: 4px; padding: 3px 4px; flex: 1; min-width: 0; }
+.panel .ramp { height: 8px; border-radius: 2px; margin-top: 6px; }
+.panel .rampl { display: flex; justify-content: space-between; font: 400 10px var(--f-mono); color: var(--ink-3); }
+.panel .splitkey { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 6px; color: var(--ink-3); }
+.panel .splitkey i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; }
+.panel.collapsed .body { display: none; }
+.status { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  font: 400 10.5px/1.4 var(--f-mono); color: var(--ink-2); background: color-mix(in oklab, var(--ground) 80%, transparent);
+  border: 1px solid var(--rule); border-radius: 5px; padding: 5px 8px; font-variant-numeric: tabular-nums; max-width: calc(100% - 24px); }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 7px 9px; font: 400 11.5px/1.45 var(--f-body); color: var(--ink-2); max-width: 240px; z-index: 5; }
+.tip b { color: var(--ink); font-weight: 600; display: block; margin-bottom: 2px; }
+.tip span { font-family: var(--f-mono); color: var(--ink); }
+.charttip { position: fixed; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 6px 8px; font: 400 11.5px/1.4 var(--f-body); color: var(--ink-2); z-index: 20; }
+.charttip span { font-family: var(--f-mono); color: var(--ink); }
+
+@media (max-width: 820px) {
+  html, body { height: auto; }
+  .app { display: block; height: auto; }
+  .mapwrap { position: sticky; top: env(safe-area-inset-top, 0px); height: 52vh; z-index: 3; border-bottom: 1px solid var(--rule); }
+  .story { overflow: visible; border-right: 0; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .panel { width: 200px; }
+  .panel:not(.open-mobile) .body { display: none; }
+  h1 { font-size: 1.9rem; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ground); }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="app">
+  <main class="story" id="story">
+    <header class="hero">
+      <div class="eyebrow">SpaceNet 2 · Las Vegas · WorldView-3 · 22 Oct 2015</div>
+      <h1>Nine years after SpaceNet 2, one model maps a city strip for under a dollar</h1>
+      <p class="lede">In 2017 the winning entry found building footprints at F1 0.693. A single model trained in 53 minutes now scores 0.755, and it has mapped all 157,339 buildings in the Vegas image strip.</p>
+      <p>Scroll to follow the project. The map on the right streams the original satellite strip and every vector layer as you go. Use the panel to switch layers and explore on your own.</p>
+    </header>
+
+    <section class="chapter" data-ch="grid">
+      <div class="kicker"><b>01</b> The 2017 challenge</div>
+      <h2>650-pixel chips from four cities</h2>
+      <p>SpaceNet 2 cut 0.3 m WorldView-3 imagery of Las Vegas, Paris, Shanghai and Khartoum into 650 × 650 px chips, about 200 m on a side, with hand-drawn building outlines. The official test labels were never released, so this project holds out 10 % of the public training chips as <strong>validation</strong>. No model ever trains on them.</p>
+      <p>Scoring is the challenge's own: a predicted outline counts only if it overlaps a labelled building by IoU ≥ 0.5, one to one. F1 is computed per city and averaged.</p>
+      <div class="mapnote">On the map: the Vegas chips, coloured by split.
+        <span class="sw" style="background:#338ced"></span>train · <span class="sw" style="background:#e76624"></span>validation · <span class="sw" style="background:#9887ef"></span>official test (unlabelled)</div>
+    </section>
+
+    <section class="chapter" data-ch="zeroshot">
+      <div class="kicker"><b>02</b> Zero-shot</div>
+      <h2>Off-the-shelf models, no SpaceNet training</h2>
+      <p>Vision-language models can't draw footprints. Their boxes are too loose for IoU 0.5. Used as prompts for SAM 2.1, though, Gemma 4's boxes reach 0.462. Given perfect boxes, SAM 2.1 scores 0.970, so the problem is <strong>finding</strong> buildings, not outlining them.</p>
+      <p><strong>SAM 3 with the single word "building" scores 0.642</strong> on all 1,037 validation chips. That's level with 2017's second place and 0.05 behind the winner, with zero SpaceNet labels.</p>
+      <div class="chart" id="chartA"></div>
+      <details class="table"><summary>Show as table</summary><div class="tablewrap" id="tableA"></div></details>
+      <div class="mapnote">On the map: a validation chip at full 0.3 m resolution with its <span class="sw" style="background:var(--gt)"></span>SpaceNet labels.</div>
+    </section>
+
+    <section class="chapter" data-ch="supervised">
+      <div class="kicker"><b>03</b> Supervised</div>
+      <h2>A one-hour model beats the 2017 winner in every city</h2>
+      <p>The model is a U-Net with an ImageNet-22k ConvNeXt-B encoder, plain RGB input and three outputs (building, border, building-to-building contact), split into instances by watershed. It trained for 53 minutes on one A100, costing about $2.20.</p>
+      <p>It scores <strong>0.755 overall</strong> against XD_XD's 0.693. The gains are largest in the hard cities: Shanghai +0.11, Khartoum +0.07.</p>
+      <div class="chart" id="chartB"></div>
+      <details class="table"><summary>Show as table</summary><div class="tablewrap" id="tableB"></div></details>
+      <div class="mapnote">On the map: <span class="sw" style="background:var(--accent)"></span>the model's footprints over the <span class="sw" style="background:var(--gt)"></span>labels on the same chip. Hover a building for its confidence.</div>
+    </section>
+
+    <section class="chapter" data-ch="xdxd">
+      <div class="kicker"><b>04</b> Head to head</div>
+      <h2>Rerunning the 2017 winner, code unchanged</h2>
+      <p>XD_XD's weights were never released, so his original Keras 1 code was retrained on the same split. It runs on PyTorch through a compatibility shim, with 2017 OpenStreetMap layers rebuilt from the May 2017 planet file. Paris and Khartoum finished:</p>
+      <ul class="facts">
+        <li><span class="v">0.697</span><span>Paris, XD_XD retrained. Our model: <strong>0.807</strong></span></li>
+        <li><span class="v">0.512</span><span>Khartoum, XD_XD retrained. Our model: <strong>0.611</strong></span></li>
+      </ul>
+      <p>On identical tiles the 2026 model leads by about 0.10. SAM 3, with no training, lands within 0.02 of the retrained winner in both cities.</p>
+    </section>
+
+    <section class="chapter" data-ch="ablations">
+      <div class="kicker"><b>05</b> What doesn't matter</div>
+      <h2>The 2017 winner's extra inputs no longer help</h2>
+      <ul class="facts">
+        <li><span class="v">±0.004</span><span><strong>8-band multispectral</strong> vs RGB. Extra bands started at zero weight; every 95 % interval contains 0, Khartoum included.</span></li>
+        <li><span class="v">+0.005</span><span><strong>Post-processing</strong>, searched with cross-validation over 36 settings, dilation and minimum area.</span></li>
+        <li><span class="v">−0.039</span><span><strong>DINOv3 satellite-pretrained ViT-L</strong> in place of ConvNeXt-B, with 3× the parameters.</span></li>
+      </ul>
+      <p>The gain comes from a pretrained convolutional encoder plus an output that separates touching buildings. Colour bands, OpenStreetMap layers and ensembles add nothing measurable.</p>
+    </section>
+
+    <section class="chapter" data-ch="general">
+      <div class="kicker"><b>06</b> How general</div>
+      <h2>Training on more SpaceNets makes one model general</h2>
+      <p>Adding the SN4 (Atlanta, 27 look angles), SN6 (Rotterdam) and SN8 (Louisiana, Germany) training sets costs 0.017 on SN2 and roughly doubles F1 elsewhere. Test areas are held out by location, and SN6 was re-split geographically after an overlap audit caught leakage.</p>
+      <div class="chart" id="chartC"></div>
+      <details class="table"><summary>Show as table</summary><div class="tablewrap" id="tableC"></div></details>
+      <p>New cities still need local labels. A model trained on SN4, SN6 and SN8 alone scores <strong>0.325</strong> on the SN2 cities, about half of zero-shot SAM 3.</p>
+    </section>
+
+    <section class="chapter" data-ch="overture">
+      <div class="kicker"><b>07</b> Open building data</div>
+      <h2>Overture matches SpaceNet in Vegas, and only there</h2>
+      <p>Overture Maps merges OpenStreetMap, Microsoft ML Buildings and Google Open Buildings. In Vegas it agrees with SpaceNet's labels at <strong>F1 0.80</strong>, so here it is a usable second reference.</p>
+      <p>Elsewhere it scores 0.10–0.19 because the conventions differ. Paris footprints are offset from the rooftops in off-nadir imagery. Shanghai's dataset draws whole terraces as one shape. Khartoum's OpenStreetMap maps walled compounds instead of the buildings inside.</p>
+      <div class="mapnote">On the map: <span class="sw" style="background:var(--ov)"></span>Overture with the <span class="sw" style="background:var(--gt)"></span>SpaceNet labels on the same chip.</div>
+    </section>
+
+    <section class="chapter" data-ch="strip">
+      <div class="kicker"><b>08</b> The whole strip</div>
+      <h2>157,339 buildings, seamless, in 30 minutes</h2>
+      <p>The model ran over the entire strip, about 14 × 16 km, read straight from SpaceNet's public cloud-optimised GeoTIFFs. It worked in 1,300 px windows and kept each building only where its centre falls in the window's core. That includes <strong>39,595 buildings outside any SpaceNet chip</strong>.</p>
+      <ul class="facts">
+        <li><span class="v">0.897</span><span>F1 against SpaceNet labels on the 386 held-out Vegas chips. The per-chip result was 0.892.</span></li>
+        <li><span class="v">0.825</span><span>agreement with Overture <strong>outside</strong> SpaceNet's area, against 0.829 inside. Accuracy holds on unlabelled ground.</span></li>
+      </ul>
+      <div class="mapnote">On the map: footprints north of the SpaceNet area, coloured by where they fall.
+        <span class="sw" style="background:#eb6263"></span>outside SpaceNet · <span class="sw" style="background:#338ced"></span>train · <span class="sw" style="background:#e76624"></span>val · <span class="sw" style="background:#9887ef"></span>test</div>
+    </section>
+
+    <section class="chapter" data-ch="cost">
+      <div class="kicker"><b>09</b> Time and cost</div>
+      <h2>What the whole project cost</h2>
+      <div class="stats">
+        <div class="stat"><div class="n">$0.97</div><div class="l">GPU compute to map the full Vegas strip, 35 min billed</div></div>
+        <div class="stat"><div class="n">$2.20</div><div class="l">to train the 0.755 model, 53 min on one A100</div></div>
+        <div class="stat"><div class="n">≈ $73</div><div class="l">all Hugging Face compute: 56 jobs, mostly the XD_XD rerun</div></div>
+        <div class="stat"><div class="n">≈ $42</div><div class="l">Claude, the agent that did the work, up to the write-up (API list price)</div></div>
+      </div>
+      <p>The work ran over about two days, almost all of it waiting on GPU jobs. The full session transcript, scrubbed of personal details, is in the repository's <code>trace/</code> folder. The per-job cost accounting is in <code>results/costs.json</code>.</p>
+      <p>Code and write-up: <a href="https://github.com/dlindenbaum/Spacenet-Speedrun" target="_blank" rel="noopener">github.com/dlindenbaum/Spacenet-Speedrun</a>. Footprints as GeoParquet: the <code>Rootkit29/vegas-wv3-building-footprints</code> dataset on Hugging Face, which is private for now.</p>
+    </section>
+
+    <section class="chapter" data-ch="explore">
+      <div class="kicker"><b>10</b> Explore</div>
+      <h2>Your turn</h2>
+      <p>Pan and zoom freely. Imagery sharpens to 1.2 m as you zoom in, and two areas carry the full 0.3 m. Footprint layers load chunk by chunk for the area in view. Hover any building for its details.</p>
+      <div class="cta">
+        <button type="button" data-fly="val_tile">Validation chip, 0.3 m</button>
+        <button type="button" data-fly="outside_nw">Outside SpaceNet, 0.3 m</button>
+        <button type="button" data-fly="strip">Whole strip</button>
+      </div>
+    </section>
+    <footer class="foot">Imagery and labels: SpaceNet (Maxar, CosmiQ Works), CC BY-SA 4.0. Overture Maps buildings, release 2026-11-18. All imagery and vectors on this page are served next to it and streamed by viewport; nothing loads from third-party hosts.</footer>
+  </main>
+
+  <div class="mapwrap">
+    <div id="map" role="img" aria-label="Map of the Las Vegas WorldView-3 strip with building footprint layers"></div>
+    <div class="panel" id="panel">
+      <h3>Layers <button type="button" id="panelToggle" aria-expanded="true">Hide</button></h3>
+      <div class="body">
+        <label><input type="checkbox" id="L-imagery" checked><span class="sw" style="background:linear-gradient(135deg,#7a6450,#3b4a3e)"></span>WV3 imagery<span class="cnt">0.3 m</span></label>
+        <label><input type="checkbox" id="L-chips"><span class="sw" style="border:1.5px solid #338ced"></span>SpaceNet chips<span class="cnt" id="C-chips"></span></label>
+        <label><input type="checkbox" id="L-gt"><span class="sw" style="border:1.5px solid var(--gt)"></span>SpaceNet labels<span class="cnt" id="C-gt"></span></label>
+        <label><input type="checkbox" id="L-overture"><span class="sw" style="border:1.5px solid var(--ov)"></span>Overture<span class="cnt" id="C-overture"></span></label>
+        <label><input type="checkbox" id="L-model" checked><span class="sw" style="background:var(--accent)"></span>Model footprints<span class="cnt" id="C-model"></span></label>
+        <div class="row"><span>Colour</span>
+          <select id="colorMode" aria-label="Colour model footprints by">
+            <option value="single">Single colour</option>
+            <option value="conf">Confidence</option>
+            <option value="split">SpaceNet coverage</option>
+          </select></div>
+        <div id="key"></div>
+      </div>
+    </div>
+    <div class="tip" id="tip" hidden></div>
+    <div class="status" id="status">Loading…</div>
+  </div>
+</div>
+<div class="charttip" id="charttip" hidden></div>
+
+<script src="https://unpkg.com/deck.gl@9.1.12/dist.min.js"></script>
+<script>
+(async function () {
+  const { Deck, BitmapLayer, SolidPolygonLayer, PathLayer, COORDINATE_SYSTEM, FlyToInterpolator, WebMercatorViewport } = deck;
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+  let man;
+  try { man = await (await fetch("manifest.json")).json(); }
+  catch (e) { statusEl.textContent = "Map data didn't load. Reload the page to try again."; return; }
+  const UNIT = man.unit_deg;
+  const [W, S, E, N] = man.bounds;
+
+  // ---------------------------------------------------------------- colours
+  const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const SPLIT = [hex("#338ced"), hex("#e76624"), hex("#9887ef"), hex("#eb6263")]; // train, val, test, outside
+  const SPLIT_NAME = ["train", "validation", "official test", "outside SpaceNet"];
+  const ACCENT = hex("#3fd0ad"), GT = hex("#f2c230"), OV = hex("#ff7ab6"), OV_MS = hex("#c9a4ff");
+  const RAMP_LO = hex("#e2574c"), RAMP_HI = hex("#3fd0ad");
+  for (const k of ["model", "gt", "overture", "chips"]) { const el = $("C-" + k); if (el) el.textContent = man.layers[k].n.toLocaleString(); }
+
+  // ---------------------------------------------------------------- state
+  const state = {
+    layers: { imagery: true, chips: false, gt: false, overture: false, model: true },
+    colorMode: "single",
+    viewState: { longitude: (W + E) / 2, latitude: (S + N) / 2, zoom: 11.4, pitch: 0, bearing: 0 },
+  };
+  const VIEWS = {
+    strip: { longitude: (W + E) / 2, latitude: (S + N) / 2, zoom: 11.4 },
+    val_tile: { longitude: man.full.val_tile.center[0], latitude: man.full.val_tile.center[1], zoom: 17.6 },
+    outside_nw: { longitude: man.full.outside_nw.center[0], latitude: man.full.outside_nw.center[1], zoom: 16.9 },
+    grid: { longitude: -115.225, latitude: 36.17, zoom: 13.1 },
+    general: { longitude: (W + E) / 2, latitude: (S + N) / 2, zoom: 12.2 },
+  };
+  const CHAPTERS = {
+    grid:       { view: "grid",       layers: { chips: true, gt: false, overture: false, model: false } },
+    zeroshot:   { view: "val_tile",   layers: { chips: false, gt: true, overture: false, model: false } },
+    supervised: { view: "val_tile",   layers: { chips: false, gt: true, overture: false, model: true }, color: "conf" },
+    xdxd:       { view: "val_tile",   layers: { chips: false, gt: true, overture: false, model: true }, color: "single" },
+    ablations:  { view: "val_tile",   layers: { chips: false, gt: false, overture: false, model: true }, color: "conf" },
+    general:    { view: "general",    layers: { chips: true, gt: false, overture: false, model: true }, color: "single" },
+    overture:   { view: "val_tile",   layers: { chips: false, gt: true, overture: true, model: false } },
+    strip:      { view: "outside_nw", layers: { chips: true, gt: false, overture: false, model: true }, color: "split" },
+    cost:       { view: "strip",      layers: { chips: false, gt: false, overture: false, model: true }, color: "split" },
+    explore:    { view: null,         layers: {} },
+  };
+
+  // ---------------------------------------------------------------- streaming: vector chunks
+  const cache = new Map(); // file -> {status, data}
+  let bytesLoaded = 0, chunksLoaded = 0, tilesRequested = 0;
+  function decode(buf, chunk, attrs) {
+    const h = new Uint32Array(buf, 0, 2), n = h[0], nv = h[1];
+    const starts = new Uint32Array(buf, 8, n + 1);
+    const xy = new Uint16Array(buf, 8 + 4 * (n + 1), 2 * nv);
+    const pos = new Float32Array(2 * nv);
+    for (let i = 0; i < 2 * nv; i++) pos[i] = xy[i] * UNIT;
+    let o = 8 + 4 * (n + 1) + 4 * nv;
+    const a = {};
+    for (const k of attrs) { a[k] = new Uint8Array(buf, o, n); o += n; }
+    return { n, nv, starts, startIndices: starts.subarray(0, n), pos, attrs: a, origin: chunk.origin, colors: {} };
+  }
+  let inFlight = false; // during a fly-to, draw what is cached but fetch nothing new
+  function need(layer, chunk) {
+    const key = chunk.f;
+    if (cache.has(key)) return cache.get(key).data;
+    if (inFlight) return null;
+    cache.set(key, { status: "loading", data: null });
+    fetch(chunk.f).then((r) => r.text()).then(async (b64) => {
+      // chunks are base64(gzip(binary)): the host serves only web types, the browser un-gzips natively
+      const bin = Uint8Array.from(atob(b64.trim()), (ch) => ch.charCodeAt(0));
+      const buf = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+      bytesLoaded += b64.length; chunksLoaded++;
+      cache.set(key, { status: "ok", data: decode(buf, chunk, man.layers[layer].attrs) });
+      render();
+    }).catch(() => cache.delete(key));
+    return null;
+  }
+  const visible = (b, vb) => b[0] < vb[2] && b[2] > vb[0] && b[1] < vb[3] && b[3] > vb[1];
+
+  function featureColor(layer, d, i, mode) {
+    if (layer === "model") {
+      if (mode === "conf") { const t = Math.max(0, Math.min(1, (d.attrs.conf[i] / 255 - 0.5) / 0.5)); return RAMP_LO.map((c, k) => Math.round(c + (RAMP_HI[k] - c) * t)); }
+      if (mode === "split") return SPLIT[d.attrs.split[i]];
+      return ACCENT;
+    }
+    if (layer === "gt") return GT;
+    if (layer === "overture") return d.attrs.src[i] === 0 ? OV : OV_MS;
+    if (layer === "chips") return SPLIT[d.attrs.split[i]];
+    return ACCENT;
+  }
+  function vertexColors(layer, d, mode, alpha) {
+    const key = layer + mode + alpha;
+    if (d.colors[key]) return d.colors[key];
+    const out = new Uint8Array(4 * d.nv);
+    for (let i = 0; i < d.n; i++) {
+      const c = featureColor(layer, d, i, mode);
+      for (let v = d.starts[i]; v < d.starts[i + 1]; v++) { out[4 * v] = c[0]; out[4 * v + 1] = c[1]; out[4 * v + 2] = c[2]; out[4 * v + 3] = alpha; }
+    }
+    return (d.colors[key] = out);
+  }
+  const STYLE = {
+    chips:    { fill: 22, line: 200, width: 1.2, minZoom: 0 },
+    gt:       { fill: 0, line: 255, width: 1.6, minZoom: 12.5 },
+    overture: { fill: 0, line: 255, width: 1.4, minZoom: 12.5 },
+    model:    { fill: 120, line: 235, width: 1.1, minZoom: 12.5 },
+  };
+  function vectorLayers(vb, zoom) {
+    const out = [];
+    for (const name of ["chips", "overture", "model", "gt"]) {
+      if (!state.layers[name]) continue;
+      const st = STYLE[name];
+      if (zoom < st.minZoom) continue;
+      const mode = name === "model" ? state.colorMode : "single";
+      man.layers[name].chunks.forEach((ch, ci) => {
+        if (!visible(ch.b, vb)) return;
+        const d = need(name, ch);
+        if (!d) return;
+        const common = { coordinateSystem: COORDINATE_SYSTEM.LNGLAT_OFFSETS, coordinateOrigin: [d.origin[0], d.origin[1], 0] };
+        if (st.fill > 0) out.push(new SolidPolygonLayer({
+          id: `${name}-${ci}-fill`, ...common, pickable: true, _normalize: false, positionFormat: "XY",
+          data: { length: d.n, startIndices: d.startIndices, attributes: {
+            getPolygon: { value: d.pos, size: 2 }, getFillColor: { value: vertexColors(name, d, mode, st.fill), size: 4, normalized: true } } },
+          updateTriggers: { getFillColor: mode },
+        }));
+        out.push(new PathLayer({
+          id: `${name}-${ci}-line`, ...common, pickable: st.fill === 0, _pathType: "open", positionFormat: "XY",
+          widthUnits: "pixels", getWidth: zoom > 16 ? st.width + 0.6 : st.width, widthMinPixels: 1,
+          data: { length: d.n, startIndices: d.startIndices, attributes: {
+            getPath: { value: d.pos, size: 2 }, getColor: { value: vertexColors(name, d, mode, st.line), size: 4, normalized: true } } },
+          updateTriggers: { getColor: mode, getWidth: zoom > 16 },
+        }));
+      });
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------- streaming: imagery
+  function imageryLayers(vb, zoom) {
+    if (!state.layers.imagery) return [];
+    const out = man.overview.map((t, i) => new BitmapLayer({ id: `ov-${i}`, image: t.f, bounds: t.b }));
+    if (zoom >= 12.8) man.l4.forEach((t) => { if (visible(t.b, vb)) { out.push(new BitmapLayer({ id: `l4-${t.f}`, image: t.f, bounds: t.b })); } });
+    if (zoom >= 15.3) Object.values(man.full).forEach((t) => { if (visible(t.b, vb)) out.push(new BitmapLayer({ id: `full-${t.f}`, image: t.f, bounds: t.b })); });
+    tilesRequested = out.length;
+    return out;
+  }
+
+  // ---------------------------------------------------------------- deck
+  const mapEl = $("map");
+  function viewBounds() {
+    const vp = new WebMercatorViewport({ ...state.viewState, width: mapEl.clientWidth || 800, height: mapEl.clientHeight || 600 });
+    const [[w, s], [e, n]] = [vp.unproject([0, vp.height]), vp.unproject([vp.width, 0])];
+    return [w, s, e, n];
+  }
+  const tipEl = $("tip");
+  function onHover(info) {
+    if (!info || !info.layer || info.index < 0) { tipEl.hidden = true; return; }
+    const [name, ci] = info.layer.id.split("-");
+    if (!man.layers[name]) { tipEl.hidden = true; return; }
+    const d = cache.get(man.layers[name].chunks[+ci].f)?.data;
+    if (!d) { tipEl.hidden = true; return; }
+    const i = info.index;
+    let html = "";
+    if (name === "model") html = `<b>Model footprint</b>Confidence <span>${(d.attrs.conf[i] / 255).toFixed(2)}</span><br>Area <span>${d.attrs.area[i] >= 255 ? "≥ 2,550" : (d.attrs.area[i] * 10).toLocaleString()} m²</span><br>${SPLIT_NAME[d.attrs.split[i]]}`;
+    else if (name === "gt") html = `<b>SpaceNet label</b>${d.attrs.split[i] ? "validation chip" : "training chip"}`;
+    else if (name === "overture") html = `<b>Overture building</b>${d.attrs.src[i] === 0 ? "OpenStreetMap" : "Microsoft ML Buildings"}`;
+    else if (name === "chips") html = `<b>SpaceNet chip</b>${SPLIT_NAME[d.attrs.split[i]]} · 650 × 650 px`;
+    tipEl.innerHTML = html; tipEl.hidden = false;
+    const x = Math.min(info.x + 14, mapEl.clientWidth - 250), y = Math.min(info.y + 14, mapEl.clientHeight - 90);
+    tipEl.style.left = x + "px"; tipEl.style.top = y + "px";
+  }
+  const deckgl = new Deck({
+    parent: mapEl, controller: true, viewState: state.viewState, layers: [],
+    onViewStateChange: ({ viewState }) => { state.viewState = viewState; deckgl.setProps({ viewState }); scheduleRender(); },
+    onHover, getCursor: ({ isHovering, isDragging }) => (isDragging ? "grabbing" : isHovering ? "pointer" : "grab"),
+  });
+  let raf = 0;
+  function scheduleRender() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+  function render() {
+    const vb = viewBounds(), z = state.viewState.zoom;
+    deckgl.setProps({ layers: [...imageryLayers(vb, z), ...vectorLayers(vb, z)] });
+    const gsd = z >= 15.3 ? "0.3 m insets + 1.2 m" : z >= 12.8 ? "1.2 m" : "4.8 m";
+    const hint = z < 12.5 && (state.layers.model || state.layers.gt || state.layers.overture) ? " · zoom in to load footprints" : "";
+    statusEl.textContent = `zoom ${z.toFixed(1)} · imagery ${gsd} · ${chunksLoaded} vector chunks, ${(bytesLoaded / 1e6).toFixed(1)} MB streamed${hint}`;
+  }
+  window.addEventListener("resize", scheduleRender);
+
+  function flyTo(v) {
+    if (!v) return;
+    const target = { ...state.viewState, ...v, pitch: 0, bearing: 0 };
+    if (!reduceMotion) {
+      inFlight = true;
+      const done = () => { if (inFlight) { inFlight = false; scheduleRender(); } };
+      Object.assign(target, { transitionDuration: 1800, transitionInterpolator: new FlyToInterpolator({ speed: 1.6 }),
+        onTransitionEnd: done, onTransitionInterrupt: done });
+      setTimeout(done, 2600);
+    }
+    state.viewState = target; deckgl.setProps({ viewState: target }); scheduleRender();
+  }
+
+  // ---------------------------------------------------------------- panel
+  for (const k of Object.keys(state.layers)) {
+    const el = $("L-" + k);
+    el.addEventListener("change", () => { state.layers[k] = el.checked; render(); });
+  }
+  const colorSel = $("colorMode");
+  function drawKey() {
+    const m = state.colorMode, key = $("key");
+    if (m === "conf") key.innerHTML = `<div class="ramp" style="background:linear-gradient(90deg,#e2574c,#3fd0ad)"></div><div class="rampl"><span>0.50</span><span>confidence</span><span>1.00</span></div>`;
+    else if (m === "split") key.innerHTML = `<div class="splitkey">${SPLIT_NAME.map((n, i) => `<span><i style="background:rgb(${SPLIT[i]})"></i>${n}</span>`).join("")}</div>`;
+    else key.innerHTML = "";
+  }
+  colorSel.addEventListener("change", () => { state.colorMode = colorSel.value; drawKey(); render(); });
+  function syncPanel() { for (const k of Object.keys(state.layers)) $("L-" + k).checked = state.layers[k]; colorSel.value = state.colorMode; drawKey(); }
+  const panel = $("panel"), pt = $("panelToggle");
+  const mobile = () => matchMedia("(max-width: 820px)").matches;
+  function setPanel(open) {
+    if (mobile()) panel.classList.toggle("open-mobile", open); else panel.classList.toggle("collapsed", !open);
+    pt.textContent = open ? "Hide" : "Show"; pt.setAttribute("aria-expanded", String(open));
+  }
+  setPanel(!mobile());
+  pt.addEventListener("click", () => setPanel(pt.getAttribute("aria-expanded") !== "true"));
+  document.querySelectorAll("[data-fly]").forEach((b) => b.addEventListener("click", () => flyTo(VIEWS[b.dataset.fly])));
+
+  // ---------------------------------------------------------------- chapters drive the map
+  const chapters = [...document.querySelectorAll(".chapter")];
+  let active = null;
+  function activate(el) {
+    if (active === el) return;
+    active?.classList.remove("active"); active = el; el.classList.add("active");
+    const c = CHAPTERS[el.dataset.ch];
+    if (!c) return;
+    Object.assign(state.layers, { imagery: true }, c.layers);
+    if (c.color) state.colorMode = c.color;
+    syncPanel(); flyTo(VIEWS[c.view]); render();
+  }
+  const io = new IntersectionObserver((entries) => {
+    const vis = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    if (vis.length) activate(vis[0].target);
+  }, { root: mobile() ? null : $("story"), rootMargin: mobile() ? "-55% 0px -30% 0px" : "-30% 0px -55% 0px" });
+  chapters.forEach((c) => io.observe(c));
+  syncPanel(); render();
+})();
+
+// ---------------------------------------------------------------- charts (inline SVG, one x scale per chart)
+(function () {
+  const css = getComputedStyle(document.documentElement);
+  const C = { s1: css.getPropertyValue("--s1").trim(), s2: css.getPropertyValue("--s2").trim(), s3: css.getPropertyValue("--s3").trim(), rule: css.getPropertyValue("--rule").trim() };
+  const tip = document.getElementById("charttip");
+  function bindTips(svg) {
+    svg.addEventListener("mousemove", (e) => {
+      const t = e.target.closest("[data-tip]");
+      if (!t) { tip.hidden = true; return; }
+      tip.innerHTML = t.dataset.tip; tip.hidden = false;
+      tip.style.left = Math.min(e.clientX + 12, innerWidth - 220) + "px"; tip.style.top = e.clientY + 12 + "px";
+    });
+    svg.addEventListener("mouseleave", () => (tip.hidden = true));
+  }
+  const fmt = (v) => v.toFixed(3);
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; }
+  function axis(svg, x0, x1, y0, y1, max, ticks) {
+    const g = el("g", { class: "grid" }, svg);
+    ticks.forEach((t) => {
+      const x = x0 + (t / max) * (x1 - x0);
+      el("line", { x1: x, x2: x, y1: y0, y2: y1 }, g);
+      el("text", { x, y: y1 + 13, "text-anchor": "middle" }, g).textContent = t.toFixed(1);
+    });
+  }
+  function legend(host, items) {
+    const d = document.createElement("div"); d.className = "legend";
+    d.innerHTML = items.map(([c, n]) => `<span><i style="background:${c}"></i>${n}</span>`).join("");
+    host.appendChild(d);
+  }
+  function table(host, head, rows) {
+    host.innerHTML = `<table><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i ? "num" : ""}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  }
+
+  // A: approaches on SN2 val, horizontal bars
+  const A = [
+    ["Gemma 4 boxes alone *", 0.279, "s3"], ["Gemma 4 boxes → SAM 2.1 *", 0.462, "s3"], ["SAM 3, \"building\"", 0.642, "s3"],
+    ["XD_XD, 2017 winner", 0.693, "s2"], ["DINOv3 ViT-L U-Net", 0.716, "s1"], ["EfficientNetV2-M U-Net", 0.731, "s1"],
+    ["Generalist, 4 SpaceNets", 0.738, "s1"], ["ConvNeXt-B U-Net", 0.755, "s1"], ["+ per-city post-processing", 0.761, "s1"],
+  ];
+  (function () {
+    const host = document.getElementById("chartA");
+    legend(host, [[C.s3, "zero-shot"], [C.s2, "2017 winner"], [C.s1, "2026 supervised"]]);
+    const w = 420, lw = 150, rh = 22, h = A.length * rh + 24, max = 0.8, x0 = lw, x1 = w - 40;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "Overall F1 on SpaceNet 2 validation by approach" }, host);
+    axis(svg, x0, x1, 0, A.length * rh, max, [0, 0.2, 0.4, 0.6, 0.8]);
+    A.forEach(([n, v, s], i) => {
+      const y = i * rh + 5, bw = (v / max) * (x1 - x0);
+      el("text", { x: lw - 8, y: y + 10, "text-anchor": "end" }, svg).textContent = n;
+      el("rect", { x: x0, y, width: bw, height: 12, rx: 2, fill: C[s], "data-tip": `${n}<br>F1 <span>${fmt(v)}</span>` }, svg);
+      el("text", { x: x0 + bw + 5, y: y + 10, class: "v" }, svg).textContent = fmt(v);
+    });
+    bindTips(svg);
+    const note = document.createElement("div"); note.className = "note"; note.textContent = "Overall F1, IoU ≥ 0.5, mean of four cities. * scored on the 100-chip subset; the others on all 1,037 validation chips. XD_XD is his 2017 leaderboard score on the official test set.";
+    host.appendChild(note);
+    table(document.getElementById("tableA"), ["Approach", "F1"], A.map(([n, v]) => [n, fmt(v)]));
+  })();
+
+  // B: per city, three series
+  const cities = ["Vegas", "Paris", "Shanghai", "Khartoum"];
+  const B = { "ConvNeXt-B U-Net": [0.892, 0.807, 0.709, 0.611], "XD_XD 2017": [0.885, 0.745, 0.597, 0.544], "SAM 3 zero-shot": [0.810, 0.678, 0.584, 0.497] };
+  const BC = { "ConvNeXt-B U-Net": C.s1, "XD_XD 2017": C.s2, "SAM 3 zero-shot": C.s3 };
+  (function () {
+    const host = document.getElementById("chartB");
+    legend(host, Object.keys(B).map((k) => [BC[k], k]));
+    const w = 420, lw = 70, bh = 8, gap = 2, grp = 3 * (bh + gap) + 10, h = cities.length * grp + 22, max = 1.0, x0 = lw, x1 = w - 40;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "F1 per city for three approaches" }, host);
+    axis(svg, x0, x1, 0, cities.length * grp, max, [0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+    cities.forEach((c, ci) => {
+      const gy = ci * grp + 4;
+      el("text", { x: lw - 8, y: gy + 17, "text-anchor": "end" }, svg).textContent = c;
+      Object.keys(B).forEach((k, si) => {
+        const v = B[k][ci], y = gy + si * (bh + gap), bw = (v / max) * (x1 - x0);
+        el("rect", { x: x0, y, width: bw, height: bh, rx: 2, fill: BC[k], "data-tip": `${c} · ${k}<br>F1 <span>${fmt(v)}</span>` }, svg);
+        if (si === 0) el("text", { x: x0 + bw + 5, y: y + 8, class: "v" }, svg).textContent = fmt(v);
+      });
+    });
+    bindTips(svg);
+    table(document.getElementById("tableB"), ["City", ...Object.keys(B)], cities.map((c, i) => [c, ...Object.keys(B).map((k) => fmt(B[k][i]))]));
+  })();
+
+  // C: generalisation dumbbell, SN2-only -> generalist
+  const Cd = [["SN2 val (in domain)", 0.755, 0.738], ["SN4 Atlanta, nadir", 0.394, 0.735], ["SN4 off-nadir", 0.195, 0.504],
+    ["SN4 very off-nadir", 0.025, 0.271], ["SN6 Rotterdam", 0.335, 0.436], ["SN8 Louisiana", 0.534, 0.809], ["SN8 Germany", 0.107, 0.581]];
+  (function () {
+    const host = document.getElementById("chartC");
+    legend(host, [[C.s2, "trained on SN2 only"], [C.s1, "trained on SN2 + SN4 + SN6 + SN8"]]);
+    const w = 420, lw = 130, rh = 22, h = Cd.length * rh + 24, max = 1.0, x0 = lw, x1 = w - 40;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "F1 on each dataset, SN2-only model versus generalist" }, host);
+    axis(svg, x0, x1, 0, Cd.length * rh, max, [0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+    const X = (v) => x0 + (v / max) * (x1 - x0);
+    Cd.forEach(([n, a, b], i) => {
+      const y = i * rh + 11;
+      el("text", { x: lw - 8, y: y + 4, "text-anchor": "end" }, svg).textContent = n;
+      el("line", { x1: X(a), x2: X(b), y1: y, y2: y, stroke: C.rule, "stroke-width": 2 }, svg);
+      el("circle", { cx: X(a), cy: y, r: 4.5, fill: C.s2, stroke: "var(--ground)", "stroke-width": 2, "data-tip": `${n}<br>SN2 only <span>${fmt(a)}</span>` }, svg);
+      el("circle", { cx: X(b), cy: y, r: 4.5, fill: C.s1, stroke: "var(--ground)", "stroke-width": 2, "data-tip": `${n}<br>generalist <span>${fmt(b)}</span>` }, svg);
+      el("text", { x: Math.max(X(a), X(b)) + 8, y: y + 4, class: "v" }, svg).textContent = fmt(b);
+    });
+    bindTips(svg);
+    const note = document.createElement("div"); note.className = "note"; note.textContent = "Labelled value: the generalist. Test areas held out by location in every dataset.";
+    host.appendChild(note);
+    table(document.getElementById("tableC"), ["Test set", "SN2 only", "Generalist"], Cd.map(([n, a, b]) => [n, fmt(a), fmt(b)]));
+  })();
+})();
+</script>

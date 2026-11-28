@@ -460,6 +460,20 @@ as a (private) Hugging Face dataset:
     agent.
 * **Code:** `jobs/strip_footprints.py`. Change `--aoi` to run the other cities; their strips are 2–4× larger.
 
+### 11. Story map
+
+[`story/index.html`](story/index.html) is an interactive, scroll-driven telling of this whole project, published as a
+(private) artifact: <https://claude.ai/artifact/1xCgi5w58nqEYh4p3CkDgF>.
+* **Scrolling chapters** move a deck.gl (WebGL) map of the Vegas strip and switch its layers.
+* **Streamed layers:**
+  * the WorldView-3 imagery, as a 4.8 m overview, 185 tiles at 1.2 m, and 0.3 m insets;
+  * the model's 157k footprints, SpaceNet's 110k labels, 148k Overture buildings and the 5k chip grid.
+* **Streaming is by viewport.** Every layer is served as a static file next to the page, and a layer loads only for
+  the area in view. Vector layers are cut into 4 × 4 spatial chunks of quantised, gzipped binary.
+* **Explore mode:** toggle layers, colour footprints by confidence or SpaceNet coverage, and hover any building.
+* **Rebuild:** `python scripts/build_story_assets.py data/story_assets` regenerates all assets from the public
+  SpaceNet strip and this repo's outputs, about 61 MB in 240 files.
+
 ## What it took to win in 2017 vs. now
 
 XD_XD's 2017 winning recipe had four parts:
@@ -495,6 +509,7 @@ scripts/overture_eval.py   Overture Maps buildings vs SpaceNet labels on val (pe
 scripts/strip_vs_overture.py  model vs Overture on full-strip windows, calibrated on val (object + pixel F1)
 jobs/strip_eval.py         HF Jobs (GPU): model inference on the full WorldView-3 strips, away from all SpaceNet chips
 jobs/strip_footprints.py   HF Jobs (GPU): seamless footprints for a whole strip -> GeoParquet 1.1 (Hilbert-sorted, bbox covering)
+scripts/build_story_assets.py  imagery pyramid + chunked vector layers for the story map (story/index.html)
 scripts/footprints_qa.py   QA of a strip footprint product (vs SpaceNet val labels, vs Overture, duplicates)
 scripts/session_costs.py   Claude + Hugging Face cost from the transcript and job records → results/costs.json
 scripts/export_trace.py    scrubbed session transcript → trace/

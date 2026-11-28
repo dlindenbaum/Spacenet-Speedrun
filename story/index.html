@@ -201,8 +201,17 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
       <p>New cities still need local labels. A model trained on SN4, SN6 and SN8 alone scores <strong>0.325</strong> on the SN2 cities, about half of zero-shot SAM 3.</p>
     </section>
 
+    <section class="chapter" data-ch="sn4">
+      <div class="kicker"><b>08</b> Off-nadir</div>
+      <h2>SpaceNet 4 is still a winners' game</h2>
+      <p>SpaceNet 4 photographed Atlanta from 27 look angles, from 7° to 54°. The same recipe, trained only on SN4 at its native 0.5 m, scores <strong>0.642</strong> on the challenge metric: per-building F1 averaged over three look-angle bands. That's well above the 0.43 baseline but 0.09 behind cannab's winning 0.730.</p>
+      <div class="chart" id="chartE"></div>
+      <details class="table"><summary>Show as table</summary><div class="tablewrap" id="tableE"></div></details>
+      <p>Near nadir the model is within 0.03 of first place. Past 40° it falls 0.16 behind. The winners fed the look angle into their networks, ensembled 4 models × 8 folds and filtered false positives with a second model, which is exactly where leaning, displaced buildings go wrong. Our test uses 40 held-out Atlanta locations, since SN4's official test labels were never released.</p>
+    </section>
+
     <section class="chapter" data-ch="overture">
-      <div class="kicker"><b>08</b> Open building data</div>
+      <div class="kicker"><b>09</b> Open building data</div>
       <h2>Overture matches SpaceNet in Vegas, and only there</h2>
       <p>Overture Maps merges OpenStreetMap, Microsoft ML Buildings and Google Open Buildings. In Vegas it agrees with SpaceNet's labels at <strong>F1 0.80</strong>, so here it is a usable second reference.</p>
       <p>Elsewhere it scores 0.10–0.19 because the conventions differ. Paris footprints are offset from the rooftops in off-nadir imagery. Shanghai's dataset draws whole terraces as one shape. Khartoum's OpenStreetMap maps walled compounds instead of the buildings inside.</p>
@@ -210,7 +219,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     </section>
 
     <section class="chapter" data-ch="strip">
-      <div class="kicker"><b>09</b> The whole strip</div>
+      <div class="kicker"><b>10</b> The whole strip</div>
       <h2>157,339 buildings, seamless, in 30 minutes</h2>
       <p>The model ran over the entire strip, about 14 × 16 km, read straight from SpaceNet's public cloud-optimised GeoTIFFs. It worked in 1,300 px windows and kept each building only where its centre falls in the window's core. That includes <strong>39,595 buildings outside any SpaceNet chip</strong>.</p>
       <ul class="facts">
@@ -222,7 +231,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     </section>
 
     <section class="chapter" data-ch="cost">
-      <div class="kicker"><b>10</b> Time and cost</div>
+      <div class="kicker"><b>11</b> Time and cost</div>
       <h2>What the whole project cost</h2>
       <div class="stats">
         <div class="stat"><div class="n">$0.97</div><div class="l">GPU compute to map the full Vegas strip, 35 min billed</div></div>
@@ -235,7 +244,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     </section>
 
     <section class="chapter" data-ch="explore">
-      <div class="kicker"><b>11</b> Explore</div>
+      <div class="kicker"><b>12</b> Explore</div>
       <h2>Your turn</h2>
       <p>Pan and zoom freely. Imagery sharpens to 1.2 m as you zoom in, and two areas carry the full 0.3 m. Footprint layers load chunk by chunk for the area in view. Hover any building for its details.</p>
       <div class="cta">
@@ -314,6 +323,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     ablations:  { view: "val_tile",   layers: { chips: false, gt: false, overture: false, model: true }, color: "conf" },
     labels:     { view: "val_tile",   layers: { chips: false, gt: true, overture: false, model: true }, color: "single" },
     general:    { view: "general",    layers: { chips: true, gt: false, overture: false, model: true }, color: "single" },
+    sn4:        { view: "general",    layers: { chips: false, gt: false, overture: false, model: true }, color: "conf" },
     overture:   { view: "val_tile",   layers: { chips: false, gt: true, overture: true, model: false } },
     strip:      { view: "outside_nw", layers: { chips: true, gt: false, overture: false, model: true }, color: "split" },
     cost:       { view: "strip",      layers: { chips: false, gt: false, overture: false, model: true }, color: "split" },
@@ -654,6 +664,31 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     const note = document.createElement("div"); note.className = "note"; note.textContent = "Labelled training chips, log scale. 100 and 300 are the mean of two random draws.";
     host.appendChild(note);
     table(document.getElementById("tableD"), ["Labelled chips", "Buildings", "F1"], [["100", "~2,100", "0.610"], ["300", "~6,000", "0.688"], ["1,000", "21,178", "0.718"], ["3,000", "61,039", "0.740"], ["9,041 (all)", "189,436", "0.755"]]);
+  })();
+
+  // E: SN4 by look-angle band, dot plot (cannab, ours, baseline)
+  (function () {
+    const host = document.getElementById("chartE");
+    const bands = ["Nadir ≤ 25°", "Off-nadir 26–40°", "Very off-nadir > 40°", "Overall (mean)"];
+    const S = [["cannab, 2019 winner", C.s2, [0.821, 0.766, 0.602, 0.730]], ["ConvNeXt-B U-Net (ours)", C.s1, [0.793, 0.691, 0.442, 0.642]],
+               ["Challenge baseline", C.s3, [0.62, 0.43, 0.22, 0.43]]];
+    legend(host, S.map(([n, c]) => [c, n]));
+    const w = 420, lw = 130, rh = 36, h = bands.length * rh + 24, max = 1.0, x0 = lw, x1 = w - 40;
+    const X = (v) => x0 + (v / max) * (x1 - x0);
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": "SpaceNet 4 F1 by look-angle band" }, host);
+    axis(svg, x0, x1, 0, bands.length * rh, max, [0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+    bands.forEach((b, i) => {
+      const y = i * rh + 12;
+      el("text", { x: lw - 8, y: y + 4, "text-anchor": "end" }, svg).textContent = b;
+      const vals = S.map((s) => s[2][i]);
+      el("line", { x1: X(Math.min(...vals)), x2: X(Math.max(...vals)), y1: y, y2: y, stroke: C.rule, "stroke-width": 2 }, svg);
+      S.forEach(([n, c, v]) => el("circle", { cx: X(v[i]), cy: y, r: 4.5, fill: c, stroke: "var(--ground)", "stroke-width": 2, "data-tip": `${b} · ${n}<br>F1 <span>${fmt(v[i])}</span>` }, svg));
+      el("text", { x: X(S[1][2][i]), y: y + 18, "text-anchor": "middle", class: "v" }, svg).textContent = `${fmt(S[1][2][i])} vs ${fmt(S[0][2][i])}`;
+    });
+    bindTips(svg);
+    const note = document.createElement("div"); note.className = "note"; note.textContent = "Labels: ours vs the winner. Winner and baseline are the official 2019 leaderboard; ours is scored on 40 held-out locations × 27 angles.";
+    host.appendChild(note);
+    table(document.getElementById("tableE"), ["Band", ...S.map((s) => s[0])], bands.map((b, i) => [b, ...S.map((s) => fmt(s[2][i]))]));
   })();
 })();
 </script>

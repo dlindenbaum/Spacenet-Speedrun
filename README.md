@@ -53,7 +53,10 @@ model itself costs $2.26 of GPU time.
 6. **~400 labelled chips are enough to beat the 2017 winner.** That is about 8 k buildings, or 4 % of the training
    set. Returns diminish after ~1,000 chips; dense cities such as Shanghai keep improving with more labels
    ([section 6b](#6b-how-many-labelled-chips-does-it-take)).
-7. **Open building data is a usable reference only where its conventions match.** Overture (Microsoft ML +
+7. **SN4 (off-nadir) is still a winners' game.** The same single-model recipe scores 0.642 against cannab's 0.730. It
+   is close at nadir (0.79 vs 0.82) and far behind beyond 40° (0.44 vs 0.60), where the winners' look-angle inputs,
+   ensembles and false-positive filtering pay off ([section 8b](#8b-spacenet-4-head-to-head-the-off-nadir-challenge)).
+8. **Open building data is a usable reference only where its conventions match.** Overture (Microsoft ML +
    OpenStreetMap) matches SpaceNet's Vegas labels at F1 0.80. Against it, our model holds its accuracy on 15 km² of
    unseen strip, with pixel agreement unchanged. In Paris, Shanghai and Khartoum, Overture outlines terraces,
    compounds or footprints rather than SpaceNet-style roofs, so it cannot measure accuracy there.
@@ -393,6 +396,57 @@ Per-angle and per-region numbers are in `results/transfer/{sn2only,generalist_ge
 `results/transfer/sn2only_convnextb_sn6geo.json` and `results/supervised/nosn2_convnextb_20k.json`, produced by
 `jobs/transfer_eval.py`.
 
+### 8b. SpaceNet 4 head to head: the off-nadir challenge
+
+How does the same recipe do against the SN4 (off-nadir, Atlanta, 27 look angles from 7° to 54°) winners?
+
+**The model** is ConvNeXt-B, trained on SN4 only at SN4's native 0.5 m:
+* **Data:** all 27 collects × 540 training locations, 14,579 tiles (`jobs/prep_sn4_full.py`), with no look-angle
+  input.
+* **Recipe and post-processing:** the same as the SN2 model, a single model with no ensemble.
+* **Test set:** our 40 held-out locations × 27 collects, 1,080 tiles and 56 k buildings. They share no ground with
+  training.
+* **Metric:** the official one. Per-building F1 (IoU ≥ 0.5) is pooled within each look-angle band, and the score is the
+  mean of the three bands.
+* **Caveat:** the official test labels were never released, so our test locations differ from the official test set.
+  Our numbers are comparable to the leaderboard, not identical.
+
+| Entry | Overall | Nadir (≤ 25°) | Off-nadir (26–40°) | Very off-nadir (> 40°) |
+|---|---|---|---|---|
+| cannab (1st) | **0.730** | 0.821 | **0.766** | **0.602** |
+| selim_sef (2nd) | 0.723 | **0.822** | 0.765 | 0.583 |
+| MaksimovKA (3rd) | 0.706 | 0.804 | 0.749 | 0.563 |
+| number13 (4th) | 0.703 | 0.804 | 0.742 | 0.561 |
+| XD_XD (5th) | 0.695 | 0.803 | 0.739 | 0.544 |
+| **ConvNeXt-B U-Net, SN4 only (ours)** | **0.642** | 0.793 | 0.691 | 0.442 |
+| Generalist, all four SpaceNets (ours, 0.3 m) | 0.503 | 0.735 | 0.504 | 0.271 |
+| Challenge baseline (TernausNet) | 0.43 | 0.62 | 0.43 | 0.22 |
+
+*Leaderboard: CosmiQ Works / SpaceNet 4 results. Ours: `results/transfer/sn4full_convnextb.json`.*
+
+* **Unlike SN2, a single modern model does not beat the SN4 winners.** It is 0.09 behind cannab and 0.05 behind
+  5th place.
+  * The gap grows with look angle: −0.03 at nadir, −0.08 off-nadir, −0.16 very off-nadir.
+  * Near nadir, where SN4 looks like SN2, the recipe is within 0.03 of first place.
+* **Per angle:** 0.82 at 7–8°, 0.72–0.79 at 21–30°, 0.60–0.73 at 32–42°, 0.46–0.56 at 44–50°, 0.41 at 52°. The two
+  53° collects average 0.17.
+* **What the winners added:** this is what a recipe-only model misses.
+  * cannab fed the network the look angle, catalogue id and tile position.
+  * He trained an auxiliary output for occluded buildings.
+  * He ensembled 4 models × 8 folds over all ~1,000 training locations.
+  * A LightGBM classifier filtered false positives.
+
+  Look-angle conditioning and false-positive filtering address the very off-nadir failure mode directly. Leaning,
+  displaced buildings label poorly against nadir-drawn footprints.
+* **Compared with our own models:**
+  * The dedicated SN4 model is +0.14 over the 4-SpaceNet generalist (0.503). The generalist saw 9 of the 27 angles,
+    fewer locations, and SN4 resampled to 0.3 m.
+  * It is +0.21 over the challenge baseline.
+* **Cost:** about $4.30 in total.
+  * Data prep: 9 min on CPU ($0.27).
+  * Training: 86 min on one A100 ($3.59). Loading 14.6 k tiles from the bucket took 36 min of that, and training 48 min.
+  * Evaluation: 11 min ($0.44).
+
 ### 9. Open building datasets (Overture Maps) and the full image strips
 
 Overture Maps' building layer (release 2026-11-18) merges OpenStreetMap, Microsoft ML Buildings, Google Open Buildings
@@ -565,6 +619,7 @@ jobs/sam3_eval.py          HF Jobs (GPU): SAM 3 text-prompted segmentation
 jobs/train_seg.py          HF Jobs (GPU): supervised U-Net training, tuned watershed, val scoring
                              --extra sn4,sn6,sn8 (generalist), --bands 4,2,1,6 (multispectral), --pp (fixed thresholds)
 jobs/transfer_eval.py      HF Jobs (GPU): cross-dataset scoring per angle band / region
+jobs/prep_sn4_full.py      HF Jobs (CPU): all 27 SN4 collects at native 0.5 m, location-held-out (for 8b)
 jobs/prep_ms.py            HF Jobs (CPU): 8-band PS-MS → uint8 shards aligned with the RGB shards
 jobs/xdxd/                 XD_XD 2017 reproduction: Keras-1 → PyTorch shim, data staging, 2017 OSM rebuild, run script
 trace/                     the Claude Code session that built this repo (readable TRACE.md + full transcript)

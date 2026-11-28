@@ -14,7 +14,8 @@ Khartoum (650 × 650 px tiles). This repo re-runs it with 2026 tools as a measur
    all of them, and a model trained without SN2 tested on the SN2 cities.
 
 All compute ran on Hugging Face (Inference Providers for the VLMs, HF Jobs for GPUs and CPUs). The work was done by Claude
-(Claude Code, Opus 5.5) over about 38 hours of wall-clock time. **Total cost ≈ $115: $73 Hugging Face + $42 Claude**
+(Claude Code, Opus 5.5) over about 38 hours of wall-clock time. **Story map:**
+[huggingface.co/spaces/Rootkit29/spacenet-speedrun](https://huggingface.co/spaces/Rootkit29/spacenet-speedrun). **Total cost ≈ $115: $73 Hugging Face + $42 Claude**
 ([details](#cost-claude-and-hugging-face)). The full session trace is in [`trace/`](#session-trace). The headline
 model itself costs $2.26 of GPU time.
 
@@ -430,7 +431,7 @@ Results are in `results/overture/`. The strip predictions themselves are in the 
 
 The validated model was run over the **whole Vegas WorldView-3 strip**: about 14 × 16 km of 0.3 m imagery, read
 straight from SpaceNet's public COGs. The output is **157,339 buildings in one 30 MB GeoParquet 1.1 file**, published
-as a (private) Hugging Face dataset:
+as a public Hugging Face dataset:
 [`Rootkit29/vegas-wv3-building-footprints`](https://huggingface.co/datasets/Rootkit29/vegas-wv3-building-footprints).
 
 ![Vegas strip footprints](results/footprints/vegas_strip_preview.png)
@@ -462,8 +463,11 @@ as a (private) Hugging Face dataset:
 
 ### 11. Story map
 
-[`story/index.html`](story/index.html) is an interactive, scroll-driven telling of this whole project, published as a
-(private) artifact: <https://claude.ai/artifact/1xCgi5w58nqEYh4p3CkDgF>.
+[`story/index.html`](story/index.html) is an interactive, scroll-driven telling of this whole project.
+* **Public:** the Hugging Face Space **<https://huggingface.co/spaces/Rootkit29/spacenet-speedrun>** (static), built by
+  `scripts/build_space.py`. Page, deck.gl, imagery and vector chunks are all self-hosted in the Space; large files are
+  served from Hugging Face's CDN with open CORS.
+* **Private:** the Claude artifact <https://claude.ai/artifact/1xCgi5w58nqEYh4p3CkDgF>.
 * **Scrolling chapters** move a deck.gl (WebGL) map of the Vegas strip and switch its layers.
 * **Streamed layers:**
   * the WorldView-3 imagery, as a 4.8 m overview, 185 tiles at 1.2 m, and 0.3 m insets;

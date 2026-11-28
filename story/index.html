@@ -217,7 +217,7 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
         <div class="stat"><div class="n">≈ $42</div><div class="l">Claude, the agent that did the work, up to the write-up (API list price)</div></div>
       </div>
       <p>The work ran over about two days, almost all of it waiting on GPU jobs. The full session transcript, scrubbed of personal details, is in the repository's <code>trace/</code> folder. The per-job cost accounting is in <code>results/costs.json</code>.</p>
-      <p>Code and write-up: <a href="https://github.com/dlindenbaum/Spacenet-Speedrun" target="_blank" rel="noopener">github.com/dlindenbaum/Spacenet-Speedrun</a>. Footprints as GeoParquet: the <code>Rootkit29/vegas-wv3-building-footprints</code> dataset on Hugging Face, which is private for now.</p>
+      <p>Code and write-up: <a href="https://github.com/dlindenbaum/Spacenet-Speedrun" target="_blank" rel="noopener">github.com/dlindenbaum/Spacenet-Speedrun</a>. Footprints as GeoParquet: <a href="https://huggingface.co/datasets/Rootkit29/vegas-wv3-building-footprints" target="_blank" rel="noopener">huggingface.co/datasets/Rootkit29/vegas-wv3-building-footprints</a>. This story is public at <a href="https://huggingface.co/spaces/Rootkit29/spacenet-speedrun" target="_blank" rel="noopener">huggingface.co/spaces/Rootkit29/spacenet-speedrun</a>.</p>
     </section>
 
     <section class="chapter" data-ch="explore">
@@ -325,11 +325,19 @@ code { font-family: var(--f-mono); font-size: .9em; color: var(--ink); }
     if (cache.has(key)) return cache.get(key).data;
     if (inFlight) return null;
     cache.set(key, { status: "loading", data: null });
-    fetch(chunk.f).then((r) => r.text()).then(async (b64) => {
-      // chunks are base64(gzip(binary)): the host serves only web types, the browser un-gzips natively
-      const bin = Uint8Array.from(atob(b64.trim()), (ch) => ch.charCodeAt(0));
-      const buf = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
-      bytesLoaded += b64.length; chunksLoaded++;
+    fetch(chunk.f).then(async (r) => {
+      let buf;
+      if (chunk.f.endsWith(".txt")) {
+        // base64(gzip(binary)) where the host serves only web types; the browser un-gzips natively
+        const b64 = await r.text();
+        const bin = Uint8Array.from(atob(b64.trim()), (ch) => ch.charCodeAt(0));
+        buf = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+        bytesLoaded += b64.length;
+      } else {
+        buf = await r.arrayBuffer();  // raw binary chunk
+        bytesLoaded += buf.byteLength;
+      }
+      chunksLoaded++;
       cache.set(key, { status: "ok", data: decode(buf, chunk, man.layers[layer].attrs) });
       render();
     }).catch(() => cache.delete(key));

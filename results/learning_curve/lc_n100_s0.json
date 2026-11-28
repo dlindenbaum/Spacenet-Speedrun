@@ -1,0 +1,47 @@
+{
+ "AOI_2_Vegas": {
+  "precision": 0.8519,
+  "recall": 0.8165,
+  "f1": 0.8339,
+  "tp": 8873,
+  "fp": 1542,
+  "fn": 1994
+ },
+ "AOI_3_Paris": {
+  "precision": 0.6861,
+  "recall": 0.6256,
+  "f1": 0.6544,
+  "tp": 802,
+  "fp": 367,
+  "fn": 480
+ },
+ "AOI_4_Shanghai": {
+  "precision": 0.5657,
+  "recall": 0.5391,
+  "f1": 0.5521,
+  "tp": 3578,
+  "fp": 2747,
+  "fn": 3059
+ },
+ "AOI_5_Khartoum": {
+  "precision": 0.3976,
+  "recall": 0.5104,
+  "f1": 0.447,
+  "tp": 1058,
+  "fp": 1603,
+  "fn": 1015
+ },
+ "overall_f1": 0.6219,
+ "postproc": {
+  "t_mask": 0.4,
+  "t_seed": 0.7,
+  "min_seed": 30
+ },
+ "tune_score": null,
+ "encoder": "tu-convnext_base.fb_in22k_ft_in1k",
+ "arch": "Unet",
+ "steps": 20000,
+ "n_train": 100,
+ "subset_seed": 0,
+ "wall_minutes": 50.0
+}
